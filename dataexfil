@@ -3,7 +3,7 @@
 #worth noting that the per endpoint deviation vs organizational avg will vary greatly and most likely will not be applicable/useful for large organizations
 
 #Surge in emails compared to standard
-(index = exchangeEmail sourcetype=MSExchange:2020 OR tag=email) AND (sender_address=*domainhere.com) directionality=Originating
+(index = emailServer sourcetype=ExchangeGmail OR tag=email) AND (sender_address=*domainhere.com) directionality=Originating
 | bucket _time span=1d
 | stats count by sender_address, _time
 | eval maxtime=now() | stats count as num_data_samples max(eval(if(_time >= relative_time(maxtime, "-1d@h"), 'count',null))) as "count" avg(eval(if(_time<relative_time(maxtime,"-1d@h"),'count',null))) as avg stdev(eval(if(_time<relative_time(maxtime,"-1d@h"),'count',null))) as stdev by "sender_address"
@@ -11,6 +11,11 @@
 | eval isOutlier=if(('count' < lowerBound OR 'count' > upperBound) AND num_data_samples >=7, 1, 0) | where isOutlier=1 AND count>10 AND count>upperBound | table sender_address, num_data_samples, count, avg, stdev, upperBound
 | fields - upperBound
 
+#input the output of previous query to identify potential exfil
+#Email by bytes and subject
+(index = emailServer sourcetype=ExchangeGmail OR tag=email) AND (sender_address=*domainhere.com) directionality=Originating
+| bucket _time span=1d
+| table sender_address, recipient_address,total_bytes message_subject
 
 #14 days Users with a Sudden Increase in Sending Many DNS Requests. PAN:Traffic as Source 
 #The query below will output the user, the time, the source IP, the destination IP, the number of DNS requests, the number of data samples, the number of standard deviations away from the source's average of DNS requests per day, and the number of standard deviations away from the organization's average of DNS requests per day. It will show output when the number of DNS requests are 3 standard deviations above the source's or organization's average for the latest day compared with the latest 30 days.
