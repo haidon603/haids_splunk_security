@@ -1,0 +1,35 @@
+#these splunk queries create a baseline and then identify when a deviation is larget than 3,5,6 (tailor based on your enviroment)
+#important to consider the larger the deviation the farther from what is deemed "average" 
+#worth noting that the per endpoint deviation vs organizational avg will vary greatly and most likely will not be applicable/useful for large organizations
+
+#Surge in emails compared to standard
+(index = exchangeEmail sourcetype=MSExchange:2020 OR tag=email) AND (sender_address=*domainhere.com) directionality=Originating
+| bucket _time span=1d
+| stats count by sender_address, _time
+| eval maxtime=now() | stats count as num_data_samples max(eval(if(_time >= relative_time(maxtime, "-1d@h"), 'count',null))) as "count" avg(eval(if(_time<relative_time(maxtime,"-1d@h"),'count',null))) as avg stdev(eval(if(_time<relative_time(maxtime,"-1d@h"),'count',null))) as stdev by "sender_address"
+| eval lowerBound=(avg-stdev*6), upperBound=(avg+stdev*6)
+| eval isOutlier=if(('count' < lowerBound OR 'count' > upperBound) AND num_data_samples >=7, 1, 0) | where isOutlier=1 AND count>10 AND count>upperBound | table sender_address, num_data_samples, count, avg, stdev, upperBound
+| fields - upperBound
+
+#large amount of traffic moving out
+#is user justified?
+index=Nameofproxy sourcetype=ProxyHere NOT (user=guest)
+| bucket _time span=1d
+| stats sum(bytes*) as bytes* by user _time src_ip
+| eventstats max(_time) as maxtime avg(bytes_out) as avg_bytes_out stdev(bytes_out) as stdev_bytes_out | eventstats count as num_data_samples avg(eval(if(_time < relative_time(maxtime, "@h"),bytes_out,null))) as per_source_avg_bytes_out stdev(eval(if(_time < relative_time(maxtime, "@h"),bytes_out,null))) as per_source_stdev_bytes_out by src_ip  
+| where num_data_samples >=4 AND bytes_out > avg_bytes_out + 3 * stdev_bytes_out AND bytes_out > per_source_avg_bytes_out + 3 * per_source_stdev_bytes_out AND _time >= relative_time(maxtime, "@h")
+| eval  num_standard_deviations_away_from_per_source_average = round(abs(bytes_out - per_source_avg_bytes_out) / per_source_stdev_bytes_out,2)
+| fields - maxtime per_source* avg* stdev* bytes_Galleon bytes_MagicShop	bytes_Optimizely bytes_SatteliteLib	bytes_UPP bytes_ab_storage bytes_per_second bytes_uncategorized bytestart bytes_to_client bytes_to_server bytes_from_client bytes_from_server num_data_samples
+| sort - num_standard_deviations_away_from_per_source_average
+
+
+#sources communicating with more destination hosts
+#can use to identify C2C
+index=Nameofproxy sourcetype=ProxyHere NOT (user=guest)
+|  bucket _time span=1d
+| stats count by dhost, user, _time, src
+| eventstats max(_time) as maxtime avg(count) as avg_count stdev(count) as stdev_count | eventstats count as num_data_samples avg(eval(if(_time < relative_time(maxtime, "@h"),count,null))) as per_source_avg_count stdev(eval(if(_time < relative_time(maxtime, "@h"),count,null))) as per_source_stdev_count by dhost  
+| where num_data_samples >=5 AND count > avg_count + 5 * stdev_count AND count > per_source_avg_count + 5 * per_source_stdev_count AND _time >= relative_time(maxtime, "@h")
+| eval num_standard_deviations_away_from_per_source_average = round(abs(count - per_source_avg_count) / per_source_stdev_count,2)
+| fields - maxtime per_source* avg* stdev_count _time dhost
+|  sort - num_standard_deviations_away_from_per_source_average
