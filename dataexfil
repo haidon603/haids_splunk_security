@@ -11,6 +11,19 @@
 | eval isOutlier=if(('count' < lowerBound OR 'count' > upperBound) AND num_data_samples >=7, 1, 0) | where isOutlier=1 AND count>10 AND count>upperBound | table sender_address, num_data_samples, count, avg, stdev, upperBound
 | fields - upperBound
 
+
+#14 days Users with a Sudden Increase in Sending Many DNS Requests. PAN:Traffic as Source 
+#The query below will output the user, the time, the source IP, the destination IP, the number of DNS requests, the number of data samples, the number of standard deviations away from the source's average of DNS requests per day, and the number of standard deviations away from the organization's average of DNS requests per day. It will show output when the number of DNS requests are 3 standard deviations above the source's or organization's average for the latest day compared with the latest 30 days.
+
+index=FW_or_proxy sourcetype=FW dest_port=53 NOT user=unknown
+|  bucket _time span=1d
+| stats count by user _time src_ip dest_ip
+| eventstats max(_time) as maxtime avg(count) as avg_count stdev(count) as stdev_count | eventstats count as num_data_samples avg(eval(if(_time < relative_time(maxtime, "@h"),count,null))) as per_source_avg_count stdev(eval(if(_time < relative_time(maxtime, "@h"),count,null))) as per_source_stdev_count by src_ip  
+| where num_data_samples >=4 AND count > avg_count + 3 * stdev_count AND count > per_source_avg_count + 3 * per_source_stdev_count AND _time >= relative_time(maxtime, "@h")
+| eval num_standard_deviations_away_from_per_source_average = round(abs(count - per_source_avg_count) / per_source_stdev_count,2)
+| fields - maxtime per_source* avg* stdev* _time
+|  sort - num_standard_deviations_away_from_per_source_average
+
 #large amount of traffic moving out
 #is user justified?
 index=Nameofproxy sourcetype=ProxyHere NOT (user=guest)
