@@ -1,0 +1,35 @@
+#Create a dashboard with a ticket to check daily, weekly, or as needed
+#Consider creating a dashboard with logon/logoff times of regular accounts to help confirm legitimacy of privileged account events
+
+#TLDs visited, ideally DA's should not be using the elevated priva account for web surfing
+index=proxyIndex sourcetype=proxyName 
+user="AdminCorp" OR user="theAdmin"
+| stats VALUES(dest) by user
+
+#Logon Failures
+index=* sourcetype=WinEventLog (EventCode=4625 OR EventCode=4771)user="AdminCorp" OR user="theAdmin"
+| stats count by user, _time, dest_nt_host, signature, EventCode
+
+#Visual of Logon Failures
+index=* sourcetype=WinEventLog (EventCode=4625 OR EventCode=4771) user="AdminCorp" OR user="theAdmin"
+| stats count by user, _time, dest_nt_host, signature, EventCode
+| timechart count by user
+
+#Account lockouts
+index=* sourcetype=WinEventLog (EventCode=4740 OR EventCode=4767) user="AdminCorp" OR user="theAdmin"
+ | table member_dn, Caller_Computer_Name, Security_ID, user, signature, EventCode, _time 
+| sort -_time
+
+#Writing or deleting files
+index=wineventlog sourcetype=WinEventLog (EventCode=4660 OR EventCode=4663)  user="AdminCorp" OR user="theAdmin"
+| table user, host, Message, _time
+| stats Values(Message) by user
+
+#Any events with "failure" as a string, this query will often take the most time to run
+index = wineventlog action=failure user="AdminCorp" OR user="theAdmin"
+|  table Account_Name, Message, EventCode, _time
+
+#Would reccomend finding lockout codes for other appliances such as Ciso, Portnox Network Access Control, Pulse Policy Secure etc.
+ user="AdminCorp" OR user="theAdmin"
+ index=CiscoISE host=ServerName (FailureReason=24415 OR FailureReason=24407 OR FailureReason=24408) user="AdminCorp" OR user="theAdmin"
+|   timechart count by user
