@@ -1,0 +1,52 @@
+#if Proxy does not block by default- it would be useful to create one where action=allowed action=droped etc.
+sourcetype="proxy" action=blocked 
+#Can choose specific departments, or exempt accounts such as guests
+user!=guest 
+
+#Exempt destination hosts as fit for your enviroment, this will take some time to come up with a complete list
+dhost!=jelly.mdhv.io
+dhost!=msn.lockerdome.com
+
+#Tailor categories based on enviroemtn and industry
+category=	"Adult Topics"	OR
+category= "Adware" OR
+category=	"Alcohol"	OR
+category=	"Anonymizers"	OR
+category=	"Browser Exploits"	OR
+category=	"Consumer Protection"	OR
+category=	"Dating/Personals"	OR
+category=	"Discrimination"	OR
+category=	"Extreme"	OR
+category=	"Gambling"	OR
+category=	"Gambling Related"	OR
+category=	"Game / Cartoon Violence"	OR
+category=	"Gruesome Content"	OR
+category=	"Historical Revisionism"	OR
+category=	"Illegal UK"	OR
+category=	"Incidental Nudity"	OR
+category= "Keyloggers" OR
+category=	"Malicious Downloads"	OR
+category=	"Malicious Sites"	OR
+category=	"Malicious Sites"	OR
+category=	"Nudity"	OR
+category=	"P2P / File Sharing"	OR
+category=	"Parked Domain"	OR
+category=	"Parked Domain"	OR
+category=	"Phishing"	OR
+category=	"Pornography"	OR
+category=	"Potential Criminal Activities"	OR
+category=	"Potential Hacking / Computer Crime"	OR
+category=	"Potential Illegal Software"	OR
+category=	"Profanity"	OR
+category=	"Provocative Attire"	OR
+category=	"PUPs"	OR
+category=	"PUPs (potentially unwanted programs)"	OR
+category=	"Residential IP Addresses"	OR
+category=	"School Cheating Info"	OR
+category=	"Sexual Materials"	OR
+category=	"Spam URLs"	OR
+category=	"Spyware / Adware / Keyloggers"	OR
+category=	"Violence"
+
+| stats values(dhost) AS dhost_List dc(dhost) AS DISTINCT_DHOST by user category 
+|  sort - DISTINCT_DHOST
