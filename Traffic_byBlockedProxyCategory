@@ -1,3 +1,6 @@
+#The goal of this panel is to spot users repeatedly visiting dhosts that are on a block category list and OR deemed not appropriate for "reasonable personal use" outlined in #acceptable use policy. The dashboard is setup with a panel for action=blocked as well as action=allowed. It then counts the number of dhosts visited that meet the query criteria. #Ideally an analyst will check this daily for past 24 hour hits and weekly to spot repeat offenders/suspicious events. 
+
+
 #if Proxy does not block by default- it would be useful to create one where action=allowed action=droped etc.
 sourcetype="proxy" action=blocked 
 #Can choose specific departments, or exempt accounts such as guests
@@ -50,3 +53,10 @@ category=	"Violence"
 
 | stats values(dhost) AS dhost_List dc(dhost) AS DISTINCT_DHOST by user category 
 |  sort - DISTINCT_DHOST
+
+
+#investigate the categories and even possibly track x amount of months to baseline visitations
+
+category=	"Anonymizers"
+| stats values(dhost) AS dhost_List dc(dhost) AS DISTINCT_DHOST by user category referer
+|  sort - DISTINCT_DHOST 
