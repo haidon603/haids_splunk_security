@@ -1,0 +1,56 @@
+#create interactive dashboard for post event re-creattion
+#set tokens to be used a variable reference in queries- i reccomend adding token to name so you can differentiate between token and title
+#most of these can be set to 24 hours for investigation
+#user_token 
+#srcIP_token 
+#dstip_Token  
+#ComputerName_token 
+
+#End Point Security Logs
+index=endpointPlatform source=* AnalyzerHostName=$ComputerName_token$ 
+| stats values(Analyzer*) as Anayzler* values(Threat*) as Threat* values(Target*) as Target* by ThreatSeverity, AnalyzerName, AnalyzerDetectionMethod, ThreatCategory
+
+#elevated privilege account management logs
+User=*$user_token$*  sourcetype="AdminGranterService"
+|  table _time AssetName Path sourcetype EventDesc host
+
+#who is logged on at IP? (Observe the available login events to see who is logged on from a given src ip)
+sourcetype=WinEventLog EventCode=4624 OR EventCode=4648 src_ip=$srcIP_token$
+| table user Account_Name _time name src_ip dest Logon_Type
+
+#proxy traffic, blocked (look for PUPs, anonymizers, hacking tools, means for data exfil, etc.
+sourcetype="proxyYO"   action=blocked 
+user=$user_token$
+| stats  values(dhost) by user category
+
+#top apps used (anything unusual?)
+index=* sourcetype="mcafee:wg:kv"
+user=$user_token$
+| top 20 app
+showcount=false showperc=false
+
+#RSA failures (are they typical work hour times?)
+sourcetype=rsaLogs action=failure user=$user_token$
+|  table _time user_first_name user_last_name vendor_event_type 
+| sort - _time
+
+#Audit logs cleared ... is someone trying to erase their path ? or just free up ram ... This one would be useful to have at a longer interval
+sourcetype=WinEventLog EventCode=1102 OR EventCode=104 Message=*$user_token$*
+| table  _time Message ComputerName SourceName host source EventCode
+
+#Kerberos Auth failures
+index=* sourcetype=WinEventLog (EventCode=4625 OR EventCode=4771) user=$$user_token$$
+| stats count by user, _time, dest_nt_host, signature, EventCode
+| timechart count by user
+
+index=* sourcetype="mcafee:wg:kv" (to get a general idea of what user does)
+user=$user_token$
+| top 20 app
+showcount=false showperc=false
+
+#where is destination IP going to via the proxy and how was link found
+index=theProxy sourcetype=proxyYO  dstip=$dstip_Token$ | top limit=10 dstip, url, app, referer
+|  table dstip, url, referer count, app
+
+#where is destination IP location according to FW
+index=Firewall  dest_ip=$dstip_Token$ | top limit=10 dest_location, dest_ip, src_ip, _time, dest_port, app| table  _time, src_ip, dest_ip, dest_port, app, dest_location
