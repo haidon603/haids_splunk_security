@@ -1,5 +1,5 @@
 #This is part 2 of interesting events. Set baseline and check for deviations or unauthorized type events. This is the Splunk XML source that can be pasted (will requies tailoring to specific enviroments). It looks and counts these events by user. 
-#Successful Logon (during stanard office hours and days/Known passwords of service accounts become open backdoors for hackers, leaving RDP session running after disconnecion is highly favor attack method) HOW did they logon? Type 3?
+#Successful Logon (during standard office hours and days/Known passwords of service accounts become open backdoors for hackers, leaving RDP session running after disconnection is highly favor attack method) HOW did they logon? Type 3?
 #Special privileges assigned to new logon (principle of least privilege- loading uncalled for drivers, modifying firmware etc.
 #A logon was attempted using explicit credentials (A user connects to a server or runs a program, scheduled task locally using alternate credentials. )
 #A privileged service was called (running powershell etc. )
