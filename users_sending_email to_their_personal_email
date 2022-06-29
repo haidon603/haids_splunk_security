@@ -1,0 +1,37 @@
+index=email sourcetype="email"
+    recipient!=*@mydomain ```alternatively, use a positive match like *@gmail.com OR *@outlook.com ```
+| fields code, attachment, attachmentSize, recipient, Sender, Subject, datetime 
+| stats values(*) as * by code ```in our enviroment code combines the email data lake```
+| lookup local=true identity_lookup_expanded email as Sender OUTPUTNEW email identity first last ```first we're going to look at our AD data for user first and last names - this is bc not all company emails are first.last@mydomain```
+| rex field=email "(?<nameReg>(.*?)@)" ```next we grab only first.name@ from first.last@mydomain```
+| eval nameTrim = trim(replace(nameReg, "@", "")), ```next remove the @```
+    SenderInitial1=substr(first,0,1), ```first grab first initial from AD name, then from first letter of email```
+    SenderInitial2=substr(email,0,1) 
+| rex field=nameTrim "(?<firstRegex>^([^.]+))"  ``` grab everything before period for first"```
+| rex field=nameTrim "(?<lastRegex>[^.]+$)" ``` grab everything after period for last"```
+| eval SenderInitial=coalesce(SenderInitial1,SenderInitial2), ```series of if null then grab next field```
+    first=coalesce(first,firstRegex),
+    last=coalesce(last,lastRegex)
+| strcat SenderInitial "*" SenderInitial ```modify values to have asteriks```
+| strcat "*" first "*" first 
+| strcat "*" last "*" last 
+| stats values(SenderInitial) as "initial" values(first) as "first" values(last) as "last" values(Subject) as "subject" values(attachment) as "attachment(s)" values(attachmentSize) as "attsize" values(datetime) as "datetime" by email recipient 
+| outputlookup personal_email ```add definition to make sure case is insensitive and WILDCARD(last),WILDCARD(first),WILDCARD(initial) - then write out to lookup```
+
+________________________________________
+
+index=email sourcetype="email" 
+ recipient!=*@mydomain
+| fields recipient `` we only require this field to match to our lookup``
+```
+| stats values(*) as * by aCode 
+| lookup local=true personal_email initial AS recipient OUTPUTNEW email subject "attachment(s)" attsize datetime initial AS first_initial_match 
+| lookup local=true personal_email first AS recipient OUTPUTNEW email subject "attachment(s)" attsize datetime first AS first_match 
+| lookup local=true personal_email last AS recipient OUTPUTNEW email subject "attachment(s)" attsize datetime last AS last_match 
+| eval match=if(len(first_initial_match)>0, 1, 0), ```if length greater than 0 that means where was a match```
+    match=if(len(first_match)>0, match + 1, match), 
+    match=if(len(last_match)>0, match + 1, match) 
+| eval confidence=case(match=0, "n/a", match=1, "low", match=2, "medium", match=3, "high",1=1, "unknown") ```tally the matches and if more than 2 that's a decent likelihood user is sending emails to themselves```
+| table email recipient subject, match, confidence, first_initial_match, first_match,last_match 
+| stats values(confidence) as confidence values(first_initial_match) as "first_initial_match" values(first_match) as "first_match" values(last_match) as "last_match" values(subject) as "subject" values("attachment(s)") as "attachment(s)" values(attsize) as "attsize" values(datetime) as "datetime" by email recipient 
+| sort -confidence
