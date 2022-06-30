@@ -20,11 +20,7 @@ index=email sourcetype="email"
 
 ________________________________________
 
-index=email sourcetype="email" 
- recipient!=*@mydomain
-| fields recipient `` we only require this field to match to our lookup``
-```
-| stats values(*) as * by aCode 
+| inputlookup personal_email
 | lookup local=true personal_email initial AS recipient OUTPUTNEW email subject "attachment(s)" attsize datetime initial AS first_initial_match 
 | lookup local=true personal_email first AS recipient OUTPUTNEW email subject "attachment(s)" attsize datetime first AS first_match 
 | lookup local=true personal_email last AS recipient OUTPUTNEW email subject "attachment(s)" attsize datetime last AS last_match 
