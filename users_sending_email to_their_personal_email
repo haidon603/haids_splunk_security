@@ -21,13 +21,14 @@ index=email sourcetype="email"
 ________________________________________
 
 | inputlookup personal_email
-| lookup local=true personal_email initial AS recipient OUTPUTNEW email subject "attachment(s)" attsize datetime initial AS first_initial_match 
-| lookup local=true personal_email first AS recipient OUTPUTNEW email subject "attachment(s)" attsize datetime first AS first_match 
-| lookup local=true personal_email last AS recipient OUTPUTNEW email subject "attachment(s)" attsize datetime last AS last_match 
+| lookup local=true personal_email email initial AS recipient OUTPUTNEW email subject "attachment(s)" attsize datetime initial AS first_initial_match 
+| lookup local=true personal_email email first AS recipient OUTPUTNEW email subject "attachment(s)" attsize datetime first AS first_match 
+| lookup local=true personal_email email last AS recipient OUTPUTNEW email subject "attachment(s)" attsize datetime last AS last_match 
 | eval match=if(len(first_initial_match)>0, 1, 0), ```if length greater than 0 that means where was a match```
     match=if(len(first_match)>0, match + 1, match), 
     match=if(len(last_match)>0, match + 1, match) 
 | eval confidence=case(match=0, "n/a", match=1, "low", match=2, "medium", match=3, "high",1=1, "unknown") ```tally the matches and if more than 2 that's a decent likelihood user is sending emails to themselves```
+| search confidence=high
 | table email recipient subject, match, confidence, first_initial_match, first_match,last_match 
 | stats values(confidence) as confidence values(first_initial_match) as "first_initial_match" values(first_match) as "first_match" values(last_match) as "last_match" values(subject) as "subject" values("attachment(s)") as "attachment(s)" values(attsize) as "attsize" values(datetime) as "datetime" by email recipient 
 | sort -confidence
