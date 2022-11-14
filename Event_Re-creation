@@ -1,5 +1,5 @@
-#create interactive dashboard for post event re-creattion
-#set tokens to be used a variable reference in queries- i reccomend adding token to name so you can differentiate between token and title
+#create interactive dashboard for post event recreation
+#set tokens to be used a variable reference in queries- i recommend adding token to name so you can differentiate between token and title
 #most of these can be set to 24 hours for investigation
 #user_token 
 #srcIP_token 
@@ -8,7 +8,7 @@
 
 #End Point Security Logs
 index=endpointPlatform source=* AnalyzerHostName=$ComputerName_token$ 
-| stats values(Analyzer*) as Anayzler* values(Threat*) as Threat* values(Target*) as Target* by ThreatSeverity, AnalyzerName, AnalyzerDetectionMethod, ThreatCategory
+| stats values(Analyzer*) as Analzer* values(Threat*) as Threat* values(Target*) as Target* by ThreatSeverity, AnalyzerName, AnalyzerDetectionMethod, ThreatCategory
 
 #elevated privilege account management logs
 User=*$user_token$*  sourcetype="AdminGranterService"
@@ -19,12 +19,12 @@ sourcetype=WinEventLog EventCode=4624 OR EventCode=4648 src_ip=$srcIP_token$
 | table user Account_Name _time name src_ip dest Logon_Type
 
 #proxy traffic, blocked (look for PUPs, anonymizers, hacking tools, means for data exfil, etc.
-sourcetype="proxyYO"   action=blocked 
+sourcetype="proxy"   action=blocked 
 user=$user_token$
 | stats  values(dhost) by user category
 
 #top apps used (anything unusual?)
-index=* sourcetype="mcafee:wg:kv"
+index=myproxy sourcetype=“myproxy”
 user=$user_token$
 | top 20 app
 showcount=false showperc=false
@@ -43,7 +43,7 @@ index=* sourcetype=WinEventLog (EventCode=4625 OR EventCode=4771) user=$$user_to
 | stats count by user, _time, dest_nt_host, signature, EventCode
 | timechart count by user
 
-index=* sourcetype="mcafee:wg:kv" (to get a general idea of what user does)
+index=myproxy sourcetype=myproxy (to get a general idea of what user does)
 user=$user_token$
 | top 20 app
 showcount=false showperc=false
