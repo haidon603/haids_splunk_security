@@ -29,8 +29,8 @@ user=$user_token$
 | top 20 app
 showcount=false showperc=false
 
-#RSA failures (are they typical work hour times?)
-sourcetype=rsaLogs action=failure user=$user_token$
+#Authentication failures (are they typical work hour times?)
+sourcetype=authenticationlogs action=failure user=$user_token$
 |  table _time user_first_name user_last_name vendor_event_type 
 | sort - _time
 
