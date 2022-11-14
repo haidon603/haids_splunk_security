@@ -1,4 +1,4 @@
-#these splunk queries create a baseline and then identify when a deviation is larget than 3,5,6 (tailor based on your enviroment)
+#these splunk queries create a baseline and then identify when a deviation is larger than 3,5,6 (tailor based on your environment)
 #important to consider the larger the deviation the farther from what is deemed "average" 
 #worth noting that the per endpoint deviation vs organizational avg will vary greatly and most likely will not be applicable/useful for large organizations
 
@@ -17,7 +17,7 @@
 | bucket _time span=1d
 | table sender_address, recipient_address,total_bytes message_subject
 
-#14 days Users with a Sudden Increase in Sending Many DNS Requests. PAN:Traffic as Source 
+#14 days Users with a Sudden Increase in Sending Many DNS Requests. FW traffic as Source 
 #The query below will output the user, the time, the source IP, the destination IP, the number of DNS requests, the number of data samples, the number of standard deviations away from the source's average of DNS requests per day, and the number of standard deviations away from the organization's average of DNS requests per day. It will show output when the number of DNS requests are 3 standard deviations above the source's or organization's average for the latest day compared with the latest 30 days.
 
 index=FW_or_proxy sourcetype=FW dest_port=53 NOT user=unknown
