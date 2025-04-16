@@ -1,0 +1,1975 @@
+<form version="1.1">
+  <label>Suricata Rule Analysis</label>
+  <description>This dashboard is created from Lookups and Regex- it showcases all of the Suricata rules. Note: Given the nature of Suricata being open source, there are several inconsistencies in how authors develop signatures. i.e. some fields are omitted/used depending on the authors. Thus, analyzing rules using a field like "deployment" isn't always feasible if only say 30% of the rules contain that tag. However, maybe 70% of the signatures contain a field like "tag", then I am able to coalesce the 2 fields to produce informed graphics. Additionally, the perspective of the authors can skew these results as one author may classify a rule as PUP behavior, another may say it is a policy violation.</description>
+  <fieldset submitButton="true" autoRun="true">
+    <input type="multiselect" token="token_classtype" searchWhenChanged="true">
+      <label>Classtype - if panels are null it means this value doesn't exist under the "classtype"  field for the particular protocol.</label>
+      <search>
+        <query>| inputlookup classtype.csv
+| table classtype</query>
+        <earliest>-60m@m</earliest>
+        <latest>now</latest>
+      </search>
+      <fieldForLabel>classtype</fieldForLabel>
+      <fieldForValue>classtype</fieldForValue>
+      <choice value="*">Any</choice>
+      <default>*</default>
+      <initialValue>*</initialValue>
+      <delimiter>,</delimiter>
+      <valuePrefix>"</valuePrefix>
+      <valueSuffix>"</valueSuffix>
+    </input>
+    <input type="multiselect" token="token_deployment" searchWhenChanged="true">
+      <label>Deployment - if panels are null it means this value doesn't exist under the "deployment" field for the particular protocol.</label>
+      <search>
+        <query>| inputlookup deployment.csv
+| table deployment</query>
+        <earliest>-60m@m</earliest>
+        <latest>now</latest>
+      </search>
+      <fieldForLabel>deployment</fieldForLabel>
+      <fieldForValue>deployment</fieldForValue>
+      <choice value="*">Any</choice>
+      <default>*</default>
+      <initialValue>*</initialValue>
+      <delimiter> OR</delimiter>
+      <valuePrefix>"</valuePrefix>
+      <valueSuffix>"</valueSuffix>
+    </input>
+  </fieldset>
+  <row>
+    <panel id="Panel11">
+      <title>Interactive Token Search (the following 9 Panels only)</title>
+      <html>
+        <style>
+          #Panel11 .dashboard-panel .panel-title {
+            color:     #FF0000;
+            font-size: 30px;
+          }   
+        </style>
+      </html>
+    </panel>
+  </row>
+  <row>
+    <panel>
+      <title>HTTP</title>
+      <table>
+        <search>
+          <query>| inputlookup http.csv
+| rex field=signature "(?&lt;content&gt;content:.+? classtype)"
+``` more conservative content presentation i.e 1 content match only. compared to 3-4| rex field=signature "(?&lt;content&gt;content.*?;)" ```
+| rex field=signature (?&lt;msg&gt;msg:.+?;)
+| eval msg=split(msg,":")
+| eval msg=mvindex(msg,1)
+| rex field=signature (?&lt;classtype&gt;classtype:.+?;)
+| eval classtype=split(classtype,":")
+| eval classtype=mvindex(classtype,1)
+| rex field=signature "(?&lt;deployment&gt; deployment \w+)"
+| eval deployment=split(deployment," ")
+| eval deployment=mvindex(deployment,2)
+| search classtype IN ($token_classtype$) AND deployment=$token_deployment$
+| stats  values(content) as content by classtype deployment msg</query>
+          <earliest>1673545260.000</earliest>
+          <latest>1673547087.000</latest>
+          <sampleRatio>1</sampleRatio>
+        </search>
+        <option name="count">5</option>
+        <option name="dataOverlayMode">none</option>
+        <option name="drilldown">none</option>
+        <option name="percentagesRow">false</option>
+        <option name="refresh.display">progressbar</option>
+        <option name="rowNumbers">false</option>
+        <option name="totalsRow">false</option>
+        <option name="wrap">true</option>
+        <format type="color" field="classtype">
+          <colorPalette type="sharedList"></colorPalette>
+          <scale type="sharedCategory"></scale>
+        </format>
+        <format type="color" field="deployment">
+          <colorPalette type="sharedList"></colorPalette>
+          <scale type="sharedCategory"></scale>
+        </format>
+      </table>
+    </panel>
+    <panel>
+      <title>TCP</title>
+      <table>
+        <search>
+          <query>| inputlookup tcp.csv
+| rex field=signature "(?&lt;content&gt;content:.+? classtype)"
+``` more conservative content presentation i.e 1 content match only. compared to 3-4| rex field=signature "(?&lt;content&gt;content.*?;)" ```
+| rex field=signature (?&lt;msg&gt;msg:.+?;)
+| eval msg=split(msg,":")
+| eval msg=mvindex(msg,1)
+| rex field=signature (?&lt;classtype&gt;classtype:.+?;)
+| eval classtype=split(classtype,":")
+| eval classtype=mvindex(classtype,1)
+| rex field=signature "(?&lt;deployment&gt; deployment \w+)"
+| eval deployment=split(deployment," ")
+| eval deployment=mvindex(deployment,2)
+| search classtype IN ($token_classtype$) AND deployment=$token_deployment$
+| stats  values(content) as content by classtype deployment msg</query>
+          <earliest>1673545260.000</earliest>
+          <latest>1673547087.000</latest>
+          <sampleRatio>1</sampleRatio>
+        </search>
+        <option name="count">5</option>
+        <option name="dataOverlayMode">none</option>
+        <option name="drilldown">none</option>
+        <option name="percentagesRow">false</option>
+        <option name="refresh.display">progressbar</option>
+        <option name="rowNumbers">false</option>
+        <option name="totalsRow">false</option>
+        <option name="wrap">true</option>
+        <format type="color" field="classtype">
+          <colorPalette type="sharedList"></colorPalette>
+          <scale type="sharedCategory"></scale>
+        </format>
+        <format type="color" field="deployment">
+          <colorPalette type="sharedList"></colorPalette>
+          <scale type="sharedCategory"></scale>
+        </format>
+      </table>
+    </panel>
+  </row>
+  <row>
+    <panel>
+      <title>TLS</title>
+      <table>
+        <search>
+          <query>| inputlookup tls.csv
+| rex field=signature "(?&lt;content&gt;content:.+? classtype)"
+``` more conservative content presentation i.e 1 content match only. compared to 3-4| rex field=signature "(?&lt;content&gt;content.*?;)" ```
+| rex field=signature (?&lt;msg&gt;msg:.+?;)
+| eval msg=split(msg,":")
+| eval msg=mvindex(msg,1)
+| rex field=signature (?&lt;classtype&gt;classtype:.+?;)
+| eval classtype=split(classtype,":")
+| eval classtype=mvindex(classtype,1)
+| rex field=signature "(?&lt;deployment&gt; deployment \w+)"
+| eval deployment=split(deployment," ")
+| eval deployment=mvindex(deployment,2)
+| search classtype IN ($token_classtype$)  AND deployment=$token_deployment$
+| stats  values(content) as content by classtype deployment msg</query>
+          <earliest>1673545260.000</earliest>
+          <latest>1673547087.000</latest>
+          <sampleRatio>1</sampleRatio>
+        </search>
+        <option name="count">5</option>
+        <option name="dataOverlayMode">none</option>
+        <option name="drilldown">none</option>
+        <option name="percentagesRow">false</option>
+        <option name="refresh.display">progressbar</option>
+        <option name="rowNumbers">false</option>
+        <option name="totalsRow">false</option>
+        <option name="wrap">true</option>
+        <format type="color" field="classtype">
+          <colorPalette type="sharedList"></colorPalette>
+          <scale type="sharedCategory"></scale>
+        </format>
+        <format type="color" field="deployment">
+          <colorPalette type="sharedList"></colorPalette>
+          <scale type="sharedCategory"></scale>
+        </format>
+      </table>
+    </panel>
+    <panel>
+      <title>UDP</title>
+      <table>
+        <search>
+          <query>| inputlookup udp.csv
+| rex field=signature "(?&lt;content&gt;content:.+? classtype)"
+``` more conservative content presentation i.e 1 content match only. compared to 3-4| rex field=signature "(?&lt;content&gt;content.*?;)" ```
+| rex field=signature (?&lt;msg&gt;msg:.+?;)
+| eval msg=split(msg,":")
+| eval msg=mvindex(msg,1)
+| rex field=signature (?&lt;classtype&gt;classtype:.+?;)
+| eval classtype=split(classtype,":")
+| eval classtype=mvindex(classtype,1)
+| rex field=signature "(?&lt;deployment&gt; deployment \w+)"
+| eval deployment=split(deployment," ")
+| eval deployment=mvindex(deployment,2)
+| search classtype IN ($token_classtype$)  AND deployment=$token_deployment$
+| stats  values(content) as content by classtype deployment msg</query>
+          <earliest>1673545260.000</earliest>
+          <latest>1673547087.000</latest>
+          <sampleRatio>1</sampleRatio>
+        </search>
+        <option name="count">5</option>
+        <option name="dataOverlayMode">none</option>
+        <option name="drilldown">none</option>
+        <option name="percentagesRow">false</option>
+        <option name="refresh.display">progressbar</option>
+        <option name="rowNumbers">false</option>
+        <option name="totalsRow">false</option>
+        <option name="wrap">true</option>
+        <format type="color" field="classtype">
+          <colorPalette type="sharedList"></colorPalette>
+          <scale type="sharedCategory"></scale>
+        </format>
+        <format type="color" field="deployment">
+          <colorPalette type="sharedList"></colorPalette>
+          <scale type="sharedCategory"></scale>
+        </format>
+      </table>
+    </panel>
+  </row>
+  <row>
+    <panel>
+      <title>SMTP</title>
+      <table>
+        <search>
+          <query>| inputlookup smtp.csv
+| rex field=signature "(?&lt;content&gt;content:.+? classtype)"
+``` more conservative content presentation i.e 1 content match only. compared to 3-4| rex field=signature "(?&lt;content&gt;content.*?;)" ```
+| rex field=signature (?&lt;msg&gt;msg:.+?;)
+| eval msg=split(msg,":")
+| eval msg=mvindex(msg,1)
+| rex field=signature (?&lt;classtype&gt;classtype:.+?;)
+| eval classtype=split(classtype,":")
+| eval classtype=mvindex(classtype,1)
+| rex field=signature "(?&lt;deployment&gt; deployment \w+)"
+| eval deployment=split(deployment," ")
+| eval deployment=mvindex(deployment,2)
+| search classtype IN ($token_classtype$) AND deployment=$token_deployment$
+| stats  values(content) as content by classtype deployment msg</query>
+          <earliest>1673545260.000</earliest>
+          <latest>1673547087.000</latest>
+          <sampleRatio>1</sampleRatio>
+        </search>
+        <option name="count">5</option>
+        <option name="dataOverlayMode">none</option>
+        <option name="drilldown">none</option>
+        <option name="percentagesRow">false</option>
+        <option name="refresh.display">progressbar</option>
+        <option name="rowNumbers">false</option>
+        <option name="totalsRow">false</option>
+        <option name="wrap">true</option>
+        <format type="color" field="classtype">
+          <colorPalette type="sharedList"></colorPalette>
+          <scale type="sharedCategory"></scale>
+        </format>
+        <format type="color" field="deployment">
+          <colorPalette type="sharedList"></colorPalette>
+          <scale type="sharedCategory"></scale>
+        </format>
+      </table>
+    </panel>
+    <panel>
+      <title>TCP-PKT</title>
+      <table>
+        <search>
+          <query>| inputlookup tcp-pkt.csv
+| rex field=signature "(?&lt;content&gt;content:.+? classtype)"
+``` more conservative content presentation i.e 1 content match only. compared to 3-4| rex field=signature "(?&lt;content&gt;content.*?;)" ```
+| rex field=signature (?&lt;msg&gt;msg:.+?;)
+| eval msg=split(msg,":")
+| eval msg=mvindex(msg,1)
+| rex field=signature (?&lt;classtype&gt;classtype:.+?;)
+| eval classtype=split(classtype,":")
+| eval classtype=mvindex(classtype,1)
+| rex field=signature "(?&lt;deployment&gt; deployment \w+)"
+| eval deployment=split(deployment," ")
+| eval deployment=mvindex(deployment,2)
+| search classtype IN ($token_classtype$) AND deployment=$token_deployment$
+| stats  values(content) as content by classtype deployment msg</query>
+          <earliest>1673545260.000</earliest>
+          <latest>1673547087.000</latest>
+          <sampleRatio>1</sampleRatio>
+        </search>
+        <option name="count">5</option>
+        <option name="dataOverlayMode">none</option>
+        <option name="drilldown">none</option>
+        <option name="percentagesRow">false</option>
+        <option name="refresh.display">progressbar</option>
+        <option name="rowNumbers">false</option>
+        <option name="totalsRow">false</option>
+        <option name="wrap">true</option>
+        <format type="color" field="classtype">
+          <colorPalette type="sharedList"></colorPalette>
+          <scale type="sharedCategory"></scale>
+        </format>
+        <format type="color" field="deployment">
+          <colorPalette type="sharedList"></colorPalette>
+          <scale type="sharedCategory"></scale>
+        </format>
+      </table>
+    </panel>
+  </row>
+  <row>
+    <panel>
+      <title>FTP</title>
+      <table>
+        <search>
+          <query>| inputlookup ftp.csv
+| rex field=signature "(?&lt;content&gt;content:.+? classtype)"
+``` more conservative content presentation i.e 1 content match only. compared to 3-4| rex field=signature "(?&lt;content&gt;content.*?;)" ```
+| rex field=signature (?&lt;msg&gt;msg:.+?;)
+| eval msg=split(msg,":")
+| eval msg=mvindex(msg,1)
+| rex field=signature (?&lt;classtype&gt;classtype:.+?;)
+| eval classtype=split(classtype,":")
+| eval classtype=mvindex(classtype,1)
+| rex field=signature "(?&lt;deployment&gt; deployment \w+)"
+| eval deployment=split(deployment," ")
+| eval deployment=mvindex(deployment,2)
+| search classtype IN ($token_classtype$)  AND deployment=$token_deployment$
+| stats  values(content) as content by classtype deployment msg</query>
+          <earliest>1673545260.000</earliest>
+          <latest>1673547087.000</latest>
+          <sampleRatio>1</sampleRatio>
+        </search>
+        <option name="count">5</option>
+        <option name="dataOverlayMode">none</option>
+        <option name="drilldown">none</option>
+        <option name="percentagesRow">false</option>
+        <option name="refresh.display">progressbar</option>
+        <option name="rowNumbers">false</option>
+        <option name="totalsRow">false</option>
+        <option name="wrap">true</option>
+        <format type="color" field="classtype">
+          <colorPalette type="sharedList"></colorPalette>
+          <scale type="sharedCategory"></scale>
+        </format>
+        <format type="color" field="deployment">
+          <colorPalette type="sharedList"></colorPalette>
+          <scale type="sharedCategory"></scale>
+        </format>
+      </table>
+    </panel>
+    <panel>
+      <title>ICMP</title>
+      <table>
+        <search>
+          <query>| inputlookup icmp.csv
+| rex field=signature "(?&lt;content&gt;content:.+? classtype)"
+``` more conservative content presentation i.e 1 content match only. compared to 3-4| rex field=signature "(?&lt;content&gt;content.*?;)" ```
+| rex field=signature (?&lt;msg&gt;msg:.+?;)
+| eval msg=split(msg,":")
+| eval msg=mvindex(msg,1)
+| rex field=signature (?&lt;classtype&gt;classtype:.+?;)
+| eval classtype=split(classtype,":")
+| eval classtype=mvindex(classtype,1)
+| rex field=signature "(?&lt;deployment&gt; deployment \w+)"
+| eval deployment=split(deployment," ")
+| eval deployment=mvindex(deployment,2)
+| search classtype IN ($token_classtype$) AND deployment=$token_deployment$
+| stats  values(content) as content by classtype deployment msg</query>
+          <earliest>1673545260.000</earliest>
+          <latest>1673547087.000</latest>
+          <sampleRatio>1</sampleRatio>
+        </search>
+        <option name="count">5</option>
+        <option name="dataOverlayMode">none</option>
+        <option name="drilldown">none</option>
+        <option name="percentagesRow">false</option>
+        <option name="refresh.display">progressbar</option>
+        <option name="rowNumbers">false</option>
+        <option name="totalsRow">false</option>
+        <option name="wrap">true</option>
+        <format type="color" field="classtype">
+          <colorPalette type="sharedList"></colorPalette>
+          <scale type="sharedCategory"></scale>
+        </format>
+        <format type="color" field="deployment">
+          <colorPalette type="sharedList"></colorPalette>
+          <scale type="sharedCategory"></scale>
+        </format>
+      </table>
+    </panel>
+  </row>
+  <row>
+    <panel>
+      <title>SMB</title>
+      <table>
+        <search>
+          <query>| inputlookup smb.csv
+| rex field=signature "(?&lt;content&gt;content:.+? classtype)"
+``` more conservative content presentation i.e 1 content match only. compared to 3-4| rex field=signature "(?&lt;content&gt;content.*?;)" ```
+| rex field=signature (?&lt;msg&gt;msg:.+?;)
+| eval msg=split(msg,":")
+| eval msg=mvindex(msg,1)
+| rex field=signature (?&lt;classtype&gt;classtype:.+?;)
+| eval classtype=split(classtype,":")
+| eval classtype=mvindex(classtype,1)
+| rex field=signature "(?&lt;deployment&gt; deployment \w+)"
+| eval deployment=split(deployment," ")
+| eval deployment=mvindex(deployment,2)
+| search classtype IN ($token_classtype$) AND deployment=$token_deployment$
+| stats  values(content) as content by classtype deployment msg</query>
+          <earliest>1673545260.000</earliest>
+          <latest>1673547087.000</latest>
+          <sampleRatio>1</sampleRatio>
+        </search>
+        <option name="count">5</option>
+        <option name="dataOverlayMode">none</option>
+        <option name="drilldown">none</option>
+        <option name="percentagesRow">false</option>
+        <option name="refresh.display">progressbar</option>
+        <option name="rowNumbers">false</option>
+        <option name="totalsRow">false</option>
+        <option name="wrap">true</option>
+        <format type="color" field="classtype">
+          <colorPalette type="sharedList"></colorPalette>
+          <scale type="sharedCategory"></scale>
+        </format>
+        <format type="color" field="deployment">
+          <colorPalette type="sharedList"></colorPalette>
+          <scale type="sharedCategory"></scale>
+        </format>
+      </table>
+    </panel>
+  </row>
+  <row>
+    <panel id="Panel1">
+      <title>HTTP - 30,042 Rules</title>
+      <html>
+        <style>
+          #Panel1 .dashboard-panel .panel-title {
+            color:     #FF0000;
+            font-size: 30px;
+          }   
+        </style>
+      </html>
+    </panel>
+  </row>
+  <row>
+    <panel>
+      <title>HTTP count and sort by content count</title>
+      <table>
+        <title>Count of rules per classtype</title>
+        <search>
+          <query>| inputlookup http.csv
+| rex field=signature (?&lt;classtype&gt;classtype:.+?;)
+| eval classtype=split(classtype,":")
+| eval classtype=mvindex(classtype,1)
+| rex field=signature (?&lt;msg&gt;msg:.+?;)
+| eval msg=split(msg,":")
+| eval msg=mvindex(msg,1)
+| stats dc(msg) as msg_disctinctcount by classtype
+| sort -msg_disctinctcount</query>
+          <earliest>-30m@m</earliest>
+          <latest>now</latest>
+          <sampleRatio>1</sampleRatio>
+        </search>
+        <option name="count">12</option>
+        <option name="dataOverlayMode">none</option>
+        <option name="drilldown">none</option>
+        <option name="percentagesRow">false</option>
+        <option name="rowNumbers">false</option>
+        <option name="totalsRow">false</option>
+        <option name="wrap">true</option>
+        <format type="color" field="classtype">
+          <colorPalette type="sharedList"></colorPalette>
+          <scale type="sharedCategory"></scale>
+        </format>
+        <format type="color" field="sigCount">
+          <colorPalette type="minMidMax" maxColor="#118832" minColor="#FFFFFF"></colorPalette>
+          <scale type="minMidMax"></scale>
+        </format>
+        <format type="color" field="content_disctinctcount">
+          <colorPalette type="minMidMax" maxColor="#118832" minColor="#FFFFFF"></colorPalette>
+          <scale type="minMidMax"></scale>
+        </format>
+        <format type="color" field="msg_disctinctcount">
+          <colorPalette type="minMidMax" maxColor="#118832" minColor="#FFFFFF"></colorPalette>
+          <scale type="minMidMax"></scale>
+        </format>
+      </table>
+    </panel>
+    <panel>
+      <title>HTTP Signatures by Deployment</title>
+      <table>
+        <title>Count signatures by the deployment tag</title>
+        <search>
+          <query>| inputlookup http.csv
+| rex field=signature "(?&lt;deployment&gt; deployment \w+)"
+| rex field=signature "(?&lt;content&gt; content:.* classtype)"
+| rex field=signature (?&lt;msg&gt;msg:.+?;)
+| eval msg=split(msg,":")
+| eval msg=mvindex(msg,1)
+| eval deployment=split(deployment," ")
+| eval deployment=mvindex(deployment,2)
+| stats values(msg) as msg count(signature) as sigCount by deployment 
+| sort sigCount</query>
+          <earliest>-30m@m</earliest>
+          <latest>now</latest>
+          <sampleRatio>1</sampleRatio>
+        </search>
+        <option name="count">2</option>
+        <option name="dataOverlayMode">none</option>
+        <option name="drilldown">none</option>
+        <option name="percentagesRow">false</option>
+        <option name="rowNumbers">false</option>
+        <option name="totalsRow">false</option>
+        <option name="wrap">true</option>
+        <format type="color" field="classtype">
+          <colorPalette type="sharedList"></colorPalette>
+          <scale type="sharedCategory"></scale>
+        </format>
+        <format type="color" field="sigCount">
+          <colorPalette type="minMidMax" maxColor="#118832" minColor="#FFFFFF"></colorPalette>
+          <scale type="minMidMax"></scale>
+        </format>
+        <format type="color" field="deployment">
+          <colorPalette type="sharedList"></colorPalette>
+          <scale type="sharedCategory"></scale>
+        </format>
+      </table>
+    </panel>
+    <panel>
+      <title>HTTP by Deployment</title>
+      <chart>
+        <search>
+          <query>| inputlookup http.csv
+| rex field=signature "(?&lt;deployment&gt; deployment \w+)"
+| stats count by deployment 
+| sort count</query>
+          <earliest>-30m@m</earliest>
+          <latest>now</latest>
+          <sampleRatio>1</sampleRatio>
+        </search>
+        <option name="charting.axisLabelsX.majorLabelStyle.overflowMode">ellipsisNone</option>
+        <option name="charting.axisLabelsX.majorLabelStyle.rotation">0</option>
+        <option name="charting.axisTitleX.visibility">visible</option>
+        <option name="charting.axisTitleY.visibility">visible</option>
+        <option name="charting.axisTitleY2.visibility">visible</option>
+        <option name="charting.axisX.abbreviation">none</option>
+        <option name="charting.axisX.scale">linear</option>
+        <option name="charting.axisY.abbreviation">none</option>
+        <option name="charting.axisY.scale">linear</option>
+        <option name="charting.axisY2.abbreviation">none</option>
+        <option name="charting.axisY2.enabled">0</option>
+        <option name="charting.axisY2.scale">inherit</option>
+        <option name="charting.chart">bar</option>
+        <option name="charting.chart.bubbleMaximumSize">50</option>
+        <option name="charting.chart.bubbleMinimumSize">10</option>
+        <option name="charting.chart.bubbleSizeBy">area</option>
+        <option name="charting.chart.nullValueMode">gaps</option>
+        <option name="charting.chart.showDataLabels">none</option>
+        <option name="charting.chart.sliceCollapsingThreshold">0.01</option>
+        <option name="charting.chart.stackMode">default</option>
+        <option name="charting.chart.style">shiny</option>
+        <option name="charting.drilldown">none</option>
+        <option name="charting.layout.splitSeries">0</option>
+        <option name="charting.layout.splitSeries.allowIndependentYRanges">0</option>
+        <option name="charting.legend.labelStyle.overflowMode">ellipsisMiddle</option>
+        <option name="charting.legend.mode">standard</option>
+        <option name="charting.legend.placement">right</option>
+        <option name="charting.lineWidth">2</option>
+        <option name="height">300</option>
+        <option name="refresh.display">progressbar</option>
+        <option name="trellis.enabled">0</option>
+        <option name="trellis.scales.shared">1</option>
+        <option name="trellis.size">medium</option>
+      </chart>
+    </panel>
+  </row>
+  <row>
+    <panel>
+      <title>HTTP signature in reference to</title>
+      <table>
+        <search>
+          <query>| inputlookup http.csv
+| rex field=signature "(?&lt;reference&gt;reference:.+?,)"
+| eval reference=split(reference,",") 
+| fillnull   value=Unknown reference
+| stats count by reference
+| sort -count</query>
+          <earliest>-30m@m</earliest>
+          <latest>now</latest>
+          <sampleRatio>1</sampleRatio>
+        </search>
+        <option name="count">3</option>
+        <option name="dataOverlayMode">none</option>
+        <option name="drilldown">none</option>
+        <option name="percentagesRow">false</option>
+        <option name="rowNumbers">false</option>
+        <option name="totalsRow">false</option>
+        <option name="wrap">true</option>
+      </table>
+    </panel>
+    <panel>
+      <title>HTTP Phishing Signatures</title>
+      <table>
+        <title>Counting messages by the content type, to spot duplicate content</title>
+        <search>
+          <query>| inputlookup http.csv
+| rex field=signature "(?&lt;content&gt;content:.+? classtype)"
+| rex field=signature (?&lt;msg&gt;msg:.+?;)
+| eval msg=split(msg,":")
+| eval msg=mvindex(msg,1)
+| search msg="*PHISH*"
+| stats values(msg) as msg count(msg) as msg_count by content
+| sort msg_count</query>
+          <earliest>-30m@m</earliest>
+          <latest>now</latest>
+          <sampleRatio>1</sampleRatio>
+        </search>
+        <option name="count">3</option>
+        <option name="dataOverlayMode">none</option>
+        <option name="drilldown">none</option>
+        <option name="percentagesRow">false</option>
+        <option name="refresh.display">progressbar</option>
+        <option name="rowNumbers">false</option>
+        <option name="totalsRow">false</option>
+        <option name="wrap">true</option>
+        <format type="color" field="msg_count">
+          <colorPalette type="minMidMax" maxColor="#118832" minColor="#FFFFFF"></colorPalette>
+          <scale type="minMidMax"></scale>
+        </format>
+      </table>
+    </panel>
+  </row>
+  <row>
+    <panel id="Panel2">
+      <title>TCP - 7,796 Rules</title>
+      <html>
+        <style>
+          #Panel2 .dashboard-panel .panel-title {
+            color:     #FF0000;
+            font-size: 30px;
+          }   
+        </style>
+      </html>
+    </panel>
+  </row>
+  <row>
+    <panel>
+      <title>TCP rules by classtype</title>
+      <table>
+        <title>Count of rules per classtype</title>
+        <search>
+          <query>| inputlookup tcp.csv
+| rex field=signature (?&lt;classtype&gt;classtype:.+?;)
+| eval classtype=split(classtype,":")
+| eval classtype=mvindex(classtype,1)
+| rex field=signature (?&lt;msg&gt;msg:.+?;)
+| eval msg=split(msg,":")
+| eval msg=mvindex(msg,1)
+| stats values(msg) as msg count(msg) as msg_count by classtype
+| sort msg_count</query>
+          <earliest>-30m@m</earliest>
+          <latest>now</latest>
+          <sampleRatio>1</sampleRatio>
+        </search>
+        <option name="count">8</option>
+        <option name="dataOverlayMode">none</option>
+        <option name="drilldown">none</option>
+        <option name="percentagesRow">false</option>
+        <option name="rowNumbers">false</option>
+        <option name="totalsRow">false</option>
+        <option name="wrap">true</option>
+        <format type="color" field="classtype">
+          <colorPalette type="sharedList"></colorPalette>
+          <scale type="sharedCategory"></scale>
+        </format>
+        <format type="color" field="msg_count">
+          <colorPalette type="minMidMax" maxColor="#118832" minColor="#FFFFFF"></colorPalette>
+          <scale type="minMidMax"></scale>
+        </format>
+      </table>
+    </panel>
+    <panel>
+      <title>TCP Count signature deployment by deployment tag</title>
+      <table>
+        <title>Count signatures by the deployment tag</title>
+        <search>
+          <query>| inputlookup tcp.csv
+| rex field=signature "(?&lt;deployment&gt; deployment \w+)"
+| rex field=signature "(?&lt;content&gt; content:.* classtype)"
+| rex field=signature (?&lt;msg&gt;msg:.+?;)
+| eval msg=split(msg,":")
+| eval msg=mvindex(msg,1)
+| eval deployment=split(deployment," ")
+| eval deployment=mvindex(deployment,2)
+| stats values(msg) as msg count(signature) as sigCount by deployment 
+| sort sigCount</query>
+          <earliest>-30m@m</earliest>
+          <latest>now</latest>
+          <sampleRatio>1</sampleRatio>
+        </search>
+        <option name="count">1</option>
+        <option name="dataOverlayMode">none</option>
+        <option name="drilldown">none</option>
+        <option name="percentagesRow">false</option>
+        <option name="rowNumbers">false</option>
+        <option name="totalsRow">false</option>
+        <option name="wrap">true</option>
+        <format type="color" field="sigCount">
+          <colorPalette type="minMidMax" maxColor="#118832" minColor="#FFFFFF"></colorPalette>
+          <scale type="minMidMax"></scale>
+        </format>
+      </table>
+    </panel>
+    <panel>
+      <title>TCP signatures by Classtype</title>
+      <chart>
+        <search>
+          <query>| inputlookup tcp.csv
+| rex field=signature (?&lt;classtype&gt;classtype:.+?;)
+| eval classtype=split(classtype,":")
+| eval classtype=mvindex(classtype,1)
+ 
+| stats count by classtype
+|  sort count</query>
+          <earliest>-30m@m</earliest>
+          <latest>now</latest>
+          <sampleRatio>1</sampleRatio>
+        </search>
+        <option name="charting.axisLabelsX.majorLabelStyle.overflowMode">ellipsisNone</option>
+        <option name="charting.axisLabelsX.majorLabelStyle.rotation">0</option>
+        <option name="charting.axisTitleX.visibility">visible</option>
+        <option name="charting.axisTitleY.visibility">visible</option>
+        <option name="charting.axisTitleY2.visibility">visible</option>
+        <option name="charting.axisX.abbreviation">none</option>
+        <option name="charting.axisX.scale">linear</option>
+        <option name="charting.axisY.abbreviation">none</option>
+        <option name="charting.axisY.scale">linear</option>
+        <option name="charting.axisY2.abbreviation">none</option>
+        <option name="charting.axisY2.enabled">0</option>
+        <option name="charting.axisY2.scale">inherit</option>
+        <option name="charting.chart">pie</option>
+        <option name="charting.chart.bubbleMaximumSize">50</option>
+        <option name="charting.chart.bubbleMinimumSize">10</option>
+        <option name="charting.chart.bubbleSizeBy">area</option>
+        <option name="charting.chart.nullValueMode">gaps</option>
+        <option name="charting.chart.showDataLabels">none</option>
+        <option name="charting.chart.sliceCollapsingThreshold">0.01</option>
+        <option name="charting.chart.stackMode">default</option>
+        <option name="charting.chart.style">shiny</option>
+        <option name="charting.drilldown">none</option>
+        <option name="charting.layout.splitSeries">0</option>
+        <option name="charting.layout.splitSeries.allowIndependentYRanges">0</option>
+        <option name="charting.legend.labelStyle.overflowMode">ellipsisMiddle</option>
+        <option name="charting.legend.mode">standard</option>
+        <option name="charting.legend.placement">right</option>
+        <option name="charting.lineWidth">2</option>
+        <option name="height">354.986</option>
+        <option name="trellis.enabled">0</option>
+        <option name="trellis.scales.shared">1</option>
+        <option name="trellis.size">medium</option>
+      </chart>
+    </panel>
+  </row>
+  <row>
+    <panel id="Panel3">
+      <title>DNS - 6,593 Rules</title>
+      <html>
+        <style>
+          #Panel3 .dashboard-panel .panel-title {
+            color:     #FF0000;
+            font-size: 30px;
+          }   
+        </style>
+      </html>
+    </panel>
+  </row>
+  <row>
+    <panel>
+      <title>DNS rules by classtype</title>
+      <table>
+        <title>Count of rules per classtype</title>
+        <search>
+          <query>| inputlookup dns.csv
+| rex field=signature (?&lt;classtype&gt;classtype:.+?;)
+| eval classtype=split(classtype,":")
+| eval classtype=mvindex(classtype,1)
+| rex field=signature (?&lt;msg&gt;msg:.+?;)
+| eval msg=split(msg,":")
+| eval msg=mvindex(msg,1)
+| stats values(msg) as msg count(msg) as msg_count by classtype
+| sort msg_count</query>
+          <earliest>-30m@m</earliest>
+          <latest>now</latest>
+          <sampleRatio>1</sampleRatio>
+        </search>
+        <option name="count">2</option>
+        <option name="dataOverlayMode">none</option>
+        <option name="drilldown">none</option>
+        <option name="percentagesRow">false</option>
+        <option name="rowNumbers">false</option>
+        <option name="totalsRow">false</option>
+        <option name="wrap">true</option>
+        <format type="color" field="msg_count">
+          <colorPalette type="minMidMax" maxColor="#118832" minColor="#FFFFFF"></colorPalette>
+          <scale type="minMidMax"></scale>
+        </format>
+        <format type="color" field="classtype">
+          <colorPalette type="sharedList"></colorPalette>
+          <scale type="sharedCategory"></scale>
+        </format>
+      </table>
+    </panel>
+    <panel>
+      <title>DNS Rules by deployment msg content count</title>
+      <table>
+        <title>Count signatures by the deployment tag (also shows content since most of the DNS rules solely look for FQDNS associated with ransomware groups, CnC, APT, phishing, malvertising, keyloggers, .onion etc.</title>
+        <search>
+          <query>| inputlookup dns.csv
+| rex field=signature "(?&lt;deployment&gt; deployment \w+)"
+| rex field=signature "(?&lt;content&gt; content:.* classtype)"
+| rex field=signature (?&lt;msg&gt;msg:.+?;)
+| rex field=signature (?&lt;content&gt;content:.+?;)
+| eval content=split(content,":")
+| eval content=mvindex(content,1)
+| eval msg=split(msg,":")
+| eval msg=mvindex(msg,1)
+| eval deployment=split(deployment," ")
+| eval deployment=mvindex(deployment,2)
+| stats values(msg) as msg values(content) as content count(signature) as sigCount by deployment 
+| sort sigCount</query>
+          <earliest>-30m@m</earliest>
+          <latest>now</latest>
+          <sampleRatio>1</sampleRatio>
+        </search>
+        <option name="count">2</option>
+        <option name="dataOverlayMode">none</option>
+        <option name="drilldown">none</option>
+        <option name="percentagesRow">false</option>
+        <option name="rowNumbers">false</option>
+        <option name="totalsRow">false</option>
+        <option name="wrap">true</option>
+        <format type="color" field="deployment">
+          <colorPalette type="sharedList"></colorPalette>
+          <scale type="sharedCategory"></scale>
+        </format>
+        <format type="color" field="sigCount">
+          <colorPalette type="minMidMax" maxColor="#118832" minColor="#FFFFFF"></colorPalette>
+          <scale type="minMidMax"></scale>
+        </format>
+      </table>
+    </panel>
+    <panel>
+      <title>DNS Categories</title>
+      <chart>
+        <search>
+          <query>| inputlookup dns.csv
+| rex field=signature "(?&lt;former_category&gt; former_category \w+)"
+| eval former_category=split(former_category," ")
+| eval category=mvindex(former_category,2)
+| rex field=signature "(?&lt;tag&gt; tag \w+)"
+| eval category = coalesce(category, tag)
+| stats count by category | sort count</query>
+          <earliest>-30m@m</earliest>
+          <latest>now</latest>
+          <sampleRatio>1</sampleRatio>
+        </search>
+        <option name="charting.axisLabelsX.majorLabelStyle.overflowMode">ellipsisNone</option>
+        <option name="charting.axisLabelsX.majorLabelStyle.rotation">0</option>
+        <option name="charting.axisTitleX.visibility">visible</option>
+        <option name="charting.axisTitleY.visibility">visible</option>
+        <option name="charting.axisTitleY2.visibility">visible</option>
+        <option name="charting.axisX.abbreviation">none</option>
+        <option name="charting.axisX.scale">linear</option>
+        <option name="charting.axisY.abbreviation">none</option>
+        <option name="charting.axisY.scale">linear</option>
+        <option name="charting.axisY2.abbreviation">none</option>
+        <option name="charting.axisY2.enabled">0</option>
+        <option name="charting.axisY2.scale">inherit</option>
+        <option name="charting.chart">pie</option>
+        <option name="charting.chart.bubbleMaximumSize">50</option>
+        <option name="charting.chart.bubbleMinimumSize">10</option>
+        <option name="charting.chart.bubbleSizeBy">area</option>
+        <option name="charting.chart.nullValueMode">gaps</option>
+        <option name="charting.chart.showDataLabels">none</option>
+        <option name="charting.chart.sliceCollapsingThreshold">0.01</option>
+        <option name="charting.chart.stackMode">default</option>
+        <option name="charting.chart.style">shiny</option>
+        <option name="charting.drilldown">none</option>
+        <option name="charting.layout.splitSeries">0</option>
+        <option name="charting.layout.splitSeries.allowIndependentYRanges">0</option>
+        <option name="charting.legend.labelStyle.overflowMode">ellipsisMiddle</option>
+        <option name="charting.legend.mode">standard</option>
+        <option name="charting.legend.placement">right</option>
+        <option name="charting.lineWidth">2</option>
+        <option name="height">355</option>
+        <option name="refresh.display">progressbar</option>
+        <option name="trellis.enabled">0</option>
+        <option name="trellis.scales.shared">1</option>
+        <option name="trellis.size">medium</option>
+      </chart>
+    </panel>
+  </row>
+  <row>
+    <panel id="Panel4">
+      <title>TLS - 5,138 Rules</title>
+      <html>
+        <style>
+          #Panel4 .dashboard-panel .panel-title {
+            color:     #FF0000;
+            font-size: 30px;
+          }   
+        </style>
+      </html>
+    </panel>
+  </row>
+  <row>
+    <panel>
+      <title>TLS rules by classtype</title>
+      <table>
+        <title>Count of rules per classtype</title>
+        <search>
+          <query>| inputlookup tls.csv
+| rex field=signature (?&lt;classtype&gt;classtype:.+?;)
+| eval classtype=split(classtype,":")
+| eval classtype=mvindex(classtype,1)
+| rex field=signature (?&lt;msg&gt;msg:.+?;)
+| eval msg=split(msg,":")
+| eval msg=mvindex(msg,1)
+| stats values(msg) as msg count(msg) as msg_count by classtype
+| sort msg_count</query>
+          <earliest>-30m@m</earliest>
+          <latest>now</latest>
+          <sampleRatio>1</sampleRatio>
+        </search>
+        <option name="count">4</option>
+        <option name="dataOverlayMode">none</option>
+        <option name="drilldown">none</option>
+        <option name="percentagesRow">false</option>
+        <option name="rowNumbers">false</option>
+        <option name="totalsRow">false</option>
+        <option name="wrap">true</option>
+        <format type="color" field="classtype">
+          <colorPalette type="sharedList"></colorPalette>
+          <scale type="sharedCategory"></scale>
+        </format>
+        <format type="color" field="msg_count">
+          <colorPalette type="minMidMax" maxColor="#118832" minColor="#FFFFFF"></colorPalette>
+          <scale type="minMidMax"></scale>
+        </format>
+      </table>
+    </panel>
+    <panel>
+      <title>TLS Rules by deployment msg content count</title>
+      <table>
+        <title>Count signatures by the deployment tag also shows content since most of the TLS rules solely look for FQDNS/Certs associated with threat actors, CnC, APT, phishing, malvertising, keyloggers, .onion etc.</title>
+        <search>
+          <query>| inputlookup tls.csv
+| rex field=signature "(?&lt;deployment&gt; deployment \w+)"
+| rex field=signature "(?&lt;content&gt; content:.* classtype)"
+| rex field=signature (?&lt;msg&gt;msg:.+?;)
+| rex field=signature (?&lt;content&gt;content:.+?;)
+| eval content=split(content,":")
+| eval content=mvindex(content,1)
+| eval msg=split(msg,":")
+| eval msg=mvindex(msg,1)
+| eval deployment=split(deployment," ")
+| eval deployment=mvindex(deployment,2)
+| stats values(msg) as msg values(content) as content count(signature) as sigCount by deployment 
+| sort sigCount</query>
+          <earliest>-30m@m</earliest>
+          <latest>now</latest>
+          <sampleRatio>1</sampleRatio>
+        </search>
+        <option name="count">1</option>
+        <option name="dataOverlayMode">none</option>
+        <option name="drilldown">none</option>
+        <option name="percentagesRow">false</option>
+        <option name="rowNumbers">false</option>
+        <option name="totalsRow">false</option>
+        <option name="wrap">true</option>
+        <format type="color" field="deployment">
+          <colorPalette type="sharedList"></colorPalette>
+          <scale type="sharedCategory"></scale>
+        </format>
+        <format type="color" field="sigCount">
+          <colorPalette type="minMidMax" maxColor="#118832" minColor="#FFFFFF"></colorPalette>
+          <scale type="minMidMax"></scale>
+        </format>
+      </table>
+    </panel>
+    <panel>
+      <title>TLS affected products</title>
+      <chart>
+        <search>
+          <query>| inputlookup tls.csv
+| rex field=signature "(?&lt;affected_product&gt;metadata:affected_product .+?,)"
+| fillnull value="Unkown" affected_product
+| eval affected_product=split(affected_product,":")
+| eval affected_product=mvindex(affected_product,1)
+| eval affected_product=split(affected_product," ")
+| eval affected_product=mvindex(affected_product,1)
+| stats count by affected_product
+| sort -count</query>
+          <earliest>-30m@m</earliest>
+          <latest>now</latest>
+          <sampleRatio>1</sampleRatio>
+        </search>
+        <option name="charting.chart">area</option>
+        <option name="charting.drilldown">none</option>
+        <option name="height">316</option>
+        <option name="refresh.display">progressbar</option>
+      </chart>
+    </panel>
+  </row>
+  <row>
+    <panel>
+      <title>TLS distinct content count by msg</title>
+      <table>
+        <search>
+          <query>| inputlookup tls.csv
+| rex field=signature "(?&lt;content&gt;content.*?;)"
+| rex field=signature (?&lt;msg&gt;msg:.+?;)
+| eval msg=split(msg,":")
+| eval msg=mvindex(msg,1)
+| stats dc(content) as content_disctinctcount values(content) as content by msg
+| sort content_disctinctcount</query>
+          <earliest>-30m@m</earliest>
+          <latest>now</latest>
+          <sampleRatio>1</sampleRatio>
+        </search>
+        <option name="count">8</option>
+        <option name="dataOverlayMode">none</option>
+        <option name="drilldown">none</option>
+        <option name="percentagesRow">false</option>
+        <option name="rowNumbers">false</option>
+        <option name="totalsRow">false</option>
+        <option name="wrap">true</option>
+        <format type="color" field="content_disctinctcount">
+          <colorPalette type="minMidMax" maxColor="#118832" minColor="#FFFFFF"></colorPalette>
+          <scale type="minMidMax"></scale>
+        </format>
+      </table>
+    </panel>
+  </row>
+  <row>
+    <panel id="Panel5">
+      <title>UDP - 371 Rules</title>
+      <html>
+        <style>
+          #Panel5 .dashboard-panel .panel-title {
+            color:     #FF0000;
+            font-size: 30px;
+          }   
+        </style>
+      </html>
+    </panel>
+  </row>
+  <row>
+    <panel>
+      <title>UDP rules by Classtypes</title>
+      <table>
+        <title>Count of rules per classtype</title>
+        <search>
+          <query>| inputlookup udp.csv
+| rex field=signature (?&lt;classtype&gt;classtype:.+?;)
+| eval classtype=split(classtype,":")
+| eval classtype=mvindex(classtype,1)
+| rex field=signature (?&lt;msg&gt;msg:.+?;)
+| eval msg=split(msg,":")
+| eval msg=mvindex(msg,1)
+| stats values(msg) as msg count(msg) as msg_count by classtype
+| sort msg_count</query>
+          <earliest>-30m@m</earliest>
+          <latest>now</latest>
+          <sampleRatio>1</sampleRatio>
+        </search>
+        <option name="count">4</option>
+        <option name="dataOverlayMode">none</option>
+        <option name="drilldown">none</option>
+        <option name="percentagesRow">false</option>
+        <option name="rowNumbers">false</option>
+        <option name="totalsRow">false</option>
+        <option name="wrap">true</option>
+        <format type="color" field="classtype">
+          <colorPalette type="sharedList"></colorPalette>
+          <scale type="sharedCategory"></scale>
+        </format>
+        <format type="color" field="msg_count">
+          <colorPalette type="minMidMax" maxColor="#118832" minColor="#FFFFFF"></colorPalette>
+          <scale type="minMidMax"></scale>
+        </format>
+      </table>
+    </panel>
+    <panel>
+      <title>UDP Rules by deployment msg content count</title>
+      <table>
+        <title>Count signatures by the deployment tag</title>
+        <search>
+          <query>| inputlookup udp.csv
+| rex field=signature "(?&lt;deployment&gt; deployment \w+)"
+| rex field=signature "(?&lt;content&gt; content:.* classtype)"
+| rex field=signature (?&lt;msg&gt;msg:.+?;)
+```| rex field=signature (?&lt;content&gt;content:.+?;)
+| eval content=split(content,":")
+| eval content=mvindex(content,1)```
+| eval msg=split(msg,":")
+| eval msg=mvindex(msg,1)
+| eval deployment=split(deployment," ")
+| eval deployment=mvindex(deployment,2)
+| stats values(msg) as msg count(signature) as sigCount by deployment 
+| sort sigCount</query>
+          <earliest>-30m@m</earliest>
+          <latest>now</latest>
+          <sampleRatio>1</sampleRatio>
+        </search>
+        <option name="count">2</option>
+        <option name="dataOverlayMode">none</option>
+        <option name="drilldown">none</option>
+        <option name="percentagesRow">false</option>
+        <option name="refresh.display">progressbar</option>
+        <option name="rowNumbers">false</option>
+        <option name="totalsRow">false</option>
+        <option name="wrap">true</option>
+        <format type="color" field="sigCount">
+          <colorPalette type="minMidMax" maxColor="#118832" minColor="#FFFFFF"></colorPalette>
+          <scale type="minMidMax"></scale>
+        </format>
+        <format type="color" field="deployment">
+          <colorPalette type="sharedList"></colorPalette>
+          <scale type="sharedCategory"></scale>
+        </format>
+      </table>
+    </panel>
+    <panel>
+      <title>UDP Classtypes</title>
+      <chart>
+        <search>
+          <query>| inputlookup udp.csv
+| rex field=signature (?&lt;classtype&gt;classtype:.+?;)
+| eval classtype=split(classtype,":")
+| eval classtype=mvindex(classtype,1)
+| stats count by classtype 
+| sort count</query>
+          <earliest>-30m@m</earliest>
+          <latest>now</latest>
+          <sampleRatio>1</sampleRatio>
+        </search>
+        <option name="charting.axisLabelsX.majorLabelStyle.overflowMode">ellipsisNone</option>
+        <option name="charting.axisLabelsX.majorLabelStyle.rotation">0</option>
+        <option name="charting.axisTitleX.visibility">visible</option>
+        <option name="charting.axisTitleY.visibility">visible</option>
+        <option name="charting.axisTitleY2.visibility">visible</option>
+        <option name="charting.axisX.abbreviation">none</option>
+        <option name="charting.axisX.scale">linear</option>
+        <option name="charting.axisY.abbreviation">none</option>
+        <option name="charting.axisY.scale">linear</option>
+        <option name="charting.axisY2.abbreviation">none</option>
+        <option name="charting.axisY2.enabled">0</option>
+        <option name="charting.axisY2.scale">inherit</option>
+        <option name="charting.chart">pie</option>
+        <option name="charting.chart.bubbleMaximumSize">50</option>
+        <option name="charting.chart.bubbleMinimumSize">10</option>
+        <option name="charting.chart.bubbleSizeBy">area</option>
+        <option name="charting.chart.nullValueMode">gaps</option>
+        <option name="charting.chart.showDataLabels">none</option>
+        <option name="charting.chart.sliceCollapsingThreshold">0.01</option>
+        <option name="charting.chart.stackMode">default</option>
+        <option name="charting.chart.style">shiny</option>
+        <option name="charting.drilldown">none</option>
+        <option name="charting.layout.splitSeries">0</option>
+        <option name="charting.layout.splitSeries.allowIndependentYRanges">0</option>
+        <option name="charting.legend.labelStyle.overflowMode">ellipsisMiddle</option>
+        <option name="charting.legend.mode">standard</option>
+        <option name="charting.legend.placement">right</option>
+        <option name="charting.lineWidth">2</option>
+        <option name="height">270.994</option>
+        <option name="trellis.enabled">0</option>
+        <option name="trellis.scales.shared">1</option>
+        <option name="trellis.size">medium</option>
+      </chart>
+    </panel>
+  </row>
+  <row>
+    <panel id="Panel6">
+      <title>SMTP - 254 Rules</title>
+      <html>
+        <style>
+          #Panel6 .dashboard-panel .panel-title {
+            color:     #FF0000;
+            font-size: 30px;
+          }   
+        </style>
+      </html>
+    </panel>
+  </row>
+  <row>
+    <panel>
+      <title>SMTP rules by classtype</title>
+      <table>
+        <title>Count of rules per classtype</title>
+        <search>
+          <query>| inputlookup smtp.csv
+| rex field=signature (?&lt;classtype&gt;classtype:.+?;)
+| eval classtype=split(classtype,":")
+| eval classtype=mvindex(classtype,1)
+| rex field=signature (?&lt;msg&gt;msg:.+?;)
+| eval msg=split(msg,":")
+| eval msg=mvindex(msg,1)
+| stats values(msg) as msg count(msg) as msg_count by classtype
+| sort msg_count</query>
+          <earliest>-30m@m</earliest>
+          <latest>now</latest>
+          <sampleRatio>1</sampleRatio>
+        </search>
+        <option name="count">4</option>
+        <option name="dataOverlayMode">none</option>
+        <option name="drilldown">none</option>
+        <option name="percentagesRow">false</option>
+        <option name="rowNumbers">false</option>
+        <option name="totalsRow">false</option>
+        <option name="wrap">true</option>
+        <format type="color" field="classtype">
+          <colorPalette type="sharedList"></colorPalette>
+          <scale type="sharedCategory"></scale>
+        </format>
+        <format type="color" field="msg_count">
+          <colorPalette type="minMidMax" maxColor="#118832" minColor="#FFFFFF"></colorPalette>
+          <scale type="minMidMax"></scale>
+        </format>
+      </table>
+    </panel>
+    <panel>
+      <title>SMTP Count signature deployment by deployment tag</title>
+      <table>
+        <title>Count signatures by the deployment tag</title>
+        <search>
+          <query>| inputlookup smtp.csv
+| rex field=signature "(?&lt;deployment&gt; deployment \w+)"
+| rex field=signature "(?&lt;content&gt; content:.* classtype)"
+| rex field=signature (?&lt;msg&gt;msg:.+?;)
+| eval msg=split(msg,":")
+| eval msg=mvindex(msg,1)
+| eval deployment=split(deployment," ")
+| eval deployment=mvindex(deployment,2)
+| stats values(msg) as msg count(signature) as sigCount by deployment 
+| sort sigCount</query>
+          <earliest>-30m@m</earliest>
+          <latest>now</latest>
+          <sampleRatio>1</sampleRatio>
+        </search>
+        <option name="count">3</option>
+        <option name="dataOverlayMode">none</option>
+        <option name="drilldown">none</option>
+        <option name="percentagesRow">false</option>
+        <option name="rowNumbers">false</option>
+        <option name="totalsRow">false</option>
+        <option name="wrap">true</option>
+        <format type="color" field="sigCount">
+          <colorPalette type="minMidMax" maxColor="#118832" minColor="#FFFFFF"></colorPalette>
+          <scale type="minMidMax"></scale>
+        </format>
+        <format type="color" field="deployment">
+          <colorPalette type="sharedList"></colorPalette>
+          <scale type="sharedCategory"></scale>
+        </format>
+      </table>
+    </panel>
+    <panel>
+      <title>SMTP by classtype</title>
+      <chart>
+        <search>
+          <query>| inputlookup smtp.csv
+| rex field=signature (?&lt;classtype&gt;classtype:.+?;)
+| eval classtype=split(classtype,":")
+| eval classtype=mvindex(classtype,1)
+| stats count by classtype
+| sort count</query>
+          <earliest>-30m@m</earliest>
+          <latest>now</latest>
+          <sampleRatio>1</sampleRatio>
+        </search>
+        <option name="charting.axisLabelsX.majorLabelStyle.overflowMode">ellipsisNone</option>
+        <option name="charting.axisLabelsX.majorLabelStyle.rotation">0</option>
+        <option name="charting.axisTitleX.visibility">visible</option>
+        <option name="charting.axisTitleY.visibility">visible</option>
+        <option name="charting.axisTitleY2.visibility">visible</option>
+        <option name="charting.axisX.abbreviation">none</option>
+        <option name="charting.axisX.scale">linear</option>
+        <option name="charting.axisY.abbreviation">none</option>
+        <option name="charting.axisY.scale">linear</option>
+        <option name="charting.axisY2.abbreviation">none</option>
+        <option name="charting.axisY2.enabled">0</option>
+        <option name="charting.axisY2.scale">inherit</option>
+        <option name="charting.chart">pie</option>
+        <option name="charting.chart.bubbleMaximumSize">50</option>
+        <option name="charting.chart.bubbleMinimumSize">10</option>
+        <option name="charting.chart.bubbleSizeBy">area</option>
+        <option name="charting.chart.nullValueMode">gaps</option>
+        <option name="charting.chart.showDataLabels">none</option>
+        <option name="charting.chart.sliceCollapsingThreshold">0.01</option>
+        <option name="charting.chart.stackMode">default</option>
+        <option name="charting.chart.style">shiny</option>
+        <option name="charting.drilldown">none</option>
+        <option name="charting.layout.splitSeries">0</option>
+        <option name="charting.layout.splitSeries.allowIndependentYRanges">0</option>
+        <option name="charting.legend.labelStyle.overflowMode">ellipsisMiddle</option>
+        <option name="charting.legend.mode">standard</option>
+        <option name="charting.legend.placement">right</option>
+        <option name="charting.lineWidth">2</option>
+        <option name="height">292.997</option>
+        <option name="trellis.enabled">0</option>
+        <option name="trellis.scales.shared">1</option>
+        <option name="trellis.size">medium</option>
+      </chart>
+    </panel>
+  </row>
+  <row>
+    <panel>
+      <title>SMTP by distinct content</title>
+      <table>
+        <title>Note: several content duplicates ... content:/webapps/zimbra/public VS |5c|webapps|5c|zimbra|5c|public</title>
+        <search>
+          <query>| inputlookup smtp.csv
+| rex field=signature "(?&lt;content&gt;content.*?;)"
+| rex field=signature (?&lt;msg&gt;msg:.+?;)
+| eval msg=split(msg,":")
+| eval msg=mvindex(msg,1)
+| stats dc(content) as content_disctinctcount values(content) as content by msg
+| sort -content_disctinctcount</query>
+          <earliest>-30m@m</earliest>
+          <latest>now</latest>
+          <sampleRatio>1</sampleRatio>
+        </search>
+        <option name="count">3</option>
+        <option name="dataOverlayMode">none</option>
+        <option name="drilldown">none</option>
+        <option name="percentagesRow">false</option>
+        <option name="rowNumbers">false</option>
+        <option name="totalsRow">false</option>
+        <option name="wrap">true</option>
+        <format type="color" field="content_disctinctcount">
+          <colorPalette type="minMidMax" maxColor="#118832" minColor="#FFFFFF"></colorPalette>
+          <scale type="minMidMax"></scale>
+        </format>
+      </table>
+    </panel>
+    <panel>
+      <title>SMTP attack target by msg count</title>
+      <table>
+        <search>
+          <query>| inputlookup smtp.csv
+| rex field=signature "(?&lt;content&gt;content.*?;)"
+| rex field=signature (?&lt;msg&gt;msg:.+?;)
+| rex field=signature "(?&lt;attack_target&gt;attack_target \w+)"
+| eval attack_target=split(attack_target," ")
+| eval attack_target=mvindex(attack_target,1)
+| eval msg=split(msg,":")
+| eval msg=mvindex(msg,1)
+| stats values(msg) as msg count(msg) as msg_count by attack_target
+| sort msg_count</query>
+          <earliest>-30m@m</earliest>
+          <latest>now</latest>
+          <sampleRatio>1</sampleRatio>
+        </search>
+        <option name="count">2</option>
+        <option name="dataOverlayMode">none</option>
+        <option name="drilldown">none</option>
+        <option name="percentagesRow">false</option>
+        <option name="rowNumbers">false</option>
+        <option name="totalsRow">false</option>
+        <option name="wrap">true</option>
+        <format type="color" field="attack_target">
+          <colorPalette type="sharedList"></colorPalette>
+          <scale type="sharedCategory"></scale>
+        </format>
+      </table>
+    </panel>
+  </row>
+  <row>
+    <panel id="Panel7">
+      <title>TCP-PKT - 173 Rules</title>
+      <html>
+        <style>
+          #Panel7 .dashboard-panel .panel-title {
+            color:     #FF0000;
+            font-size: 30px;
+          }   
+        </style>
+      </html>
+    </panel>
+  </row>
+  <row>
+    <panel>
+      <title>TCP-PKT rules by classtype</title>
+      <table>
+        <title>Count of rules per classtype</title>
+        <search>
+          <query>| inputlookup tcp-pkt.csv
+| rex field=signature (?&lt;classtype&gt;classtype:.+?;)
+| eval classtype=split(classtype,":")
+| eval classtype=mvindex(classtype,1)
+| rex field=signature (?&lt;msg&gt;msg:.+?;)
+| eval msg=split(msg,":")
+| eval msg=mvindex(msg,1)
+| stats values(msg) as msg count(msg) as msg_count by classtype
+| sort msg_count</query>
+          <earliest>-30m@m</earliest>
+          <latest>now</latest>
+          <sampleRatio>1</sampleRatio>
+        </search>
+        <option name="count">5</option>
+        <option name="dataOverlayMode">none</option>
+        <option name="drilldown">none</option>
+        <option name="percentagesRow">false</option>
+        <option name="rowNumbers">false</option>
+        <option name="totalsRow">false</option>
+        <option name="wrap">true</option>
+        <format type="color" field="classtype">
+          <colorPalette type="sharedList"></colorPalette>
+          <scale type="sharedCategory"></scale>
+        </format>
+        <format type="color" field="msg_count">
+          <colorPalette type="minMidMax" maxColor="#118832" minColor="#FFFFFF"></colorPalette>
+          <scale type="minMidMax"></scale>
+        </format>
+      </table>
+    </panel>
+    <panel>
+      <title>TCP-PKT Count signature deployment by deployment tag</title>
+      <table>
+        <title>Count signatures by the deployment tag</title>
+        <search>
+          <query>| inputlookup tcp-pkt.csv
+| rex field=signature "(?&lt;deployment&gt; deployment \w+)"
+| rex field=signature "(?&lt;content&gt; content:.* classtype)"
+| rex field=signature (?&lt;msg&gt;msg:.+?;)
+| eval msg=split(msg,":")
+| eval msg=mvindex(msg,1)
+| eval deployment=split(deployment," ")
+| eval deployment=mvindex(deployment,2)
+| stats values(msg) as msg count(signature) as sigCount by deployment 
+| sort sigCount</query>
+          <earliest>-30m@m</earliest>
+          <latest>now</latest>
+          <sampleRatio>1</sampleRatio>
+        </search>
+        <option name="count">1</option>
+        <option name="dataOverlayMode">none</option>
+        <option name="drilldown">none</option>
+        <option name="percentagesRow">false</option>
+        <option name="rowNumbers">false</option>
+        <option name="totalsRow">false</option>
+        <option name="wrap">true</option>
+        <format type="color" field="sigCount">
+          <colorPalette type="minMidMax" maxColor="#118832" minColor="#FFFFFF"></colorPalette>
+          <scale type="minMidMax"></scale>
+        </format>
+      </table>
+    </panel>
+    <panel>
+      <title>TCP-PKT by classtype</title>
+      <chart>
+        <search>
+          <query>| inputlookup tcp-pkt.csv  
+| rex field=signature (?&lt;classtype&gt;classtype:.+?;)
+| eval classtype=split(classtype,":")
+| eval classtype=mvindex(classtype,1)
+ 
+| stats count by classtype | sort -count</query>
+          <earliest>1673461140.000</earliest>
+          <latest>1673462945.000</latest>
+          <sampleRatio>1</sampleRatio>
+        </search>
+        <option name="charting.axisLabelsX.majorLabelStyle.overflowMode">ellipsisNone</option>
+        <option name="charting.axisLabelsX.majorLabelStyle.rotation">0</option>
+        <option name="charting.axisTitleX.visibility">visible</option>
+        <option name="charting.axisTitleY.visibility">visible</option>
+        <option name="charting.axisTitleY2.visibility">visible</option>
+        <option name="charting.axisX.abbreviation">none</option>
+        <option name="charting.axisX.scale">linear</option>
+        <option name="charting.axisY.abbreviation">none</option>
+        <option name="charting.axisY.scale">linear</option>
+        <option name="charting.axisY2.abbreviation">none</option>
+        <option name="charting.axisY2.enabled">0</option>
+        <option name="charting.axisY2.scale">inherit</option>
+        <option name="charting.chart">area</option>
+        <option name="charting.chart.bubbleMaximumSize">50</option>
+        <option name="charting.chart.bubbleMinimumSize">10</option>
+        <option name="charting.chart.bubbleSizeBy">area</option>
+        <option name="charting.chart.nullValueMode">gaps</option>
+        <option name="charting.chart.showDataLabels">none</option>
+        <option name="charting.chart.sliceCollapsingThreshold">0.01</option>
+        <option name="charting.chart.stackMode">default</option>
+        <option name="charting.chart.style">shiny</option>
+        <option name="charting.drilldown">none</option>
+        <option name="charting.layout.splitSeries">0</option>
+        <option name="charting.layout.splitSeries.allowIndependentYRanges">0</option>
+        <option name="charting.legend.labelStyle.overflowMode">ellipsisMiddle</option>
+        <option name="charting.legend.mode">standard</option>
+        <option name="charting.legend.placement">right</option>
+        <option name="charting.lineWidth">2</option>
+        <option name="trellis.enabled">0</option>
+        <option name="trellis.scales.shared">1</option>
+        <option name="trellis.size">medium</option>
+      </chart>
+    </panel>
+  </row>
+  <row>
+    <panel id="Panel8">
+      <title>FTP - 112 Rules</title>
+      <html>
+        <style>
+          #Panel8 .dashboard-panel .panel-title {
+            color:     #FF0000;
+            font-size: 30px;
+          }   
+        </style>
+      </html>
+    </panel>
+  </row>
+  <row>
+    <panel>
+      <title>FTP rules by classtype</title>
+      <table>
+        <title>Count of rules per classtype</title>
+        <search>
+          <query>| inputlookup ftp.csv
+| rex field=signature (?&lt;classtype&gt;classtype:.+?;)
+| eval classtype=split(classtype,":")
+| eval classtype=mvindex(classtype,1)
+| rex field=signature (?&lt;msg&gt;msg:.+?;)
+| eval msg=split(msg,":")
+| eval msg=mvindex(msg,1)
+| stats values(msg) as msg count(msg) as msg_count by classtype
+| sort msg_count</query>
+          <earliest>-30m@m</earliest>
+          <latest>now</latest>
+          <sampleRatio>1</sampleRatio>
+        </search>
+        <option name="count">4</option>
+        <option name="dataOverlayMode">none</option>
+        <option name="drilldown">none</option>
+        <option name="percentagesRow">false</option>
+        <option name="rowNumbers">false</option>
+        <option name="totalsRow">false</option>
+        <option name="wrap">true</option>
+        <format type="color" field="classtype">
+          <colorPalette type="sharedList"></colorPalette>
+          <scale type="sharedCategory"></scale>
+        </format>
+        <format type="color" field="msg_count">
+          <colorPalette type="minMidMax" maxColor="#118832" minColor="#FFFFFF"></colorPalette>
+          <scale type="minMidMax"></scale>
+        </format>
+      </table>
+    </panel>
+    <panel>
+      <title>FTP Count signature deployment by deployment tag</title>
+      <table>
+        <title>Count signatures by the deployment tag</title>
+        <search>
+          <query>| inputlookup ftp.csv
+| rex field=signature "(?&lt;deployment&gt; deployment \w+)"
+| rex field=signature "(?&lt;content&gt; content:.* classtype)"
+| rex field=signature (?&lt;msg&gt;msg:.+?;)
+| eval msg=split(msg,":")
+| eval msg=mvindex(msg,1)
+| eval deployment=split(deployment," ")
+| eval deployment=mvindex(deployment,2)
+| stats values(msg) as msg count(signature) as sigCount by deployment 
+| sort sigCount</query>
+          <earliest>-30m@m</earliest>
+          <latest>now</latest>
+          <sampleRatio>1</sampleRatio>
+        </search>
+        <option name="count">1</option>
+        <option name="dataOverlayMode">none</option>
+        <option name="drilldown">none</option>
+        <option name="percentagesRow">false</option>
+        <option name="rowNumbers">false</option>
+        <option name="totalsRow">false</option>
+        <option name="wrap">true</option>
+        <format type="color" field="sigCount">
+          <colorPalette type="minMidMax" maxColor="#118832" minColor="#FFFFFF"></colorPalette>
+          <scale type="minMidMax"></scale>
+        </format>
+        <format type="color" field="deployment">
+          <colorPalette type="sharedList"></colorPalette>
+          <scale type="sharedCategory"></scale>
+        </format>
+      </table>
+    </panel>
+    <panel>
+      <title>FTP Signature Categories</title>
+      <chart>
+        <title>| fillnull value="MALWARE" category</title>
+        <search>
+          <query>| inputlookup ftp.csv
+| rex field=signature "(?&lt;former_category&gt; former_category \w+)"
+| eval former_category=split(former_category," ")
+| eval category=mvindex(former_category,2)
+| fillnull value="MALWARE" category
+| stats count by category | sort count</query>
+          <earliest>-30m@m</earliest>
+          <latest>now</latest>
+          <sampleRatio>1</sampleRatio>
+        </search>
+        <option name="charting.axisLabelsX.majorLabelStyle.overflowMode">ellipsisNone</option>
+        <option name="charting.axisLabelsX.majorLabelStyle.rotation">0</option>
+        <option name="charting.axisTitleX.visibility">visible</option>
+        <option name="charting.axisTitleY.visibility">visible</option>
+        <option name="charting.axisTitleY2.visibility">visible</option>
+        <option name="charting.axisX.abbreviation">none</option>
+        <option name="charting.axisX.scale">linear</option>
+        <option name="charting.axisY.abbreviation">none</option>
+        <option name="charting.axisY.scale">linear</option>
+        <option name="charting.axisY2.abbreviation">none</option>
+        <option name="charting.axisY2.enabled">0</option>
+        <option name="charting.axisY2.scale">inherit</option>
+        <option name="charting.chart">pie</option>
+        <option name="charting.chart.bubbleMaximumSize">50</option>
+        <option name="charting.chart.bubbleMinimumSize">10</option>
+        <option name="charting.chart.bubbleSizeBy">area</option>
+        <option name="charting.chart.nullValueMode">gaps</option>
+        <option name="charting.chart.showDataLabels">none</option>
+        <option name="charting.chart.sliceCollapsingThreshold">0.01</option>
+        <option name="charting.chart.stackMode">default</option>
+        <option name="charting.chart.style">shiny</option>
+        <option name="charting.drilldown">none</option>
+        <option name="charting.layout.splitSeries">0</option>
+        <option name="charting.layout.splitSeries.allowIndependentYRanges">0</option>
+        <option name="charting.legend.labelStyle.overflowMode">ellipsisMiddle</option>
+        <option name="charting.legend.mode">standard</option>
+        <option name="charting.legend.placement">right</option>
+        <option name="charting.lineWidth">2</option>
+        <option name="height">302</option>
+        <option name="refresh.display">progressbar</option>
+        <option name="trellis.enabled">0</option>
+        <option name="trellis.scales.shared">1</option>
+        <option name="trellis.size">medium</option>
+      </chart>
+    </panel>
+  </row>
+  <row>
+    <panel>
+      <title>FTP by rule category deployment</title>
+      <table>
+        <search>
+          <query>| inputlookup ftp.csv 
+| rex field=signature "(?&lt;deployment&gt; deployment \w+)"
+| rex field=signature "(?&lt;former_category&gt; former_category \w+)"
+| rex field=signature "(?&lt;content&gt; content:.* classtype)"
+| rex field=signature (?&lt;msg&gt;msg:.+?;)
+| eval msg=split(msg,":")
+| eval msg=mvindex(msg,1)
+| eval deployment=split(deployment," ")
+| eval deployment=mvindex(deployment,2)
+| stats values(msg) as msg  count(signature) as sigCount by former_category   deployment
+| sort sigCount</query>
+          <earliest>-30m@m</earliest>
+          <latest>now</latest>
+          <sampleRatio>1</sampleRatio>
+        </search>
+        <option name="count">3</option>
+        <option name="dataOverlayMode">none</option>
+        <option name="drilldown">none</option>
+        <option name="percentagesRow">false</option>
+        <option name="rowNumbers">false</option>
+        <option name="totalsRow">false</option>
+        <option name="wrap">true</option>
+        <format type="color" field="former_category">
+          <colorPalette type="sharedList"></colorPalette>
+          <scale type="sharedCategory"></scale>
+        </format>
+        <format type="color" field="sigCount">
+          <colorPalette type="minMidMax" maxColor="#118832" minColor="#FFFFFF"></colorPalette>
+          <scale type="minMidMax"></scale>
+        </format>
+      </table>
+    </panel>
+  </row>
+  <row>
+    <panel id="Panel9">
+      <title>ICMP - 47 Rules</title>
+      <html>
+        <style>
+          #Panel9 .dashboard-panel .panel-title {
+            color:     #FF0000;
+            font-size: 30px;
+          }   
+        </style>
+      </html>
+    </panel>
+  </row>
+  <row>
+    <panel>
+      <title>ICMP rules by classtype</title>
+      <table>
+        <title>Count of rules per classtype</title>
+        <search>
+          <query>| inputlookup icmp.csv
+| rex field=signature (?&lt;classtype&gt;classtype:.+?;)
+| eval classtype=split(classtype,":")
+| eval classtype=mvindex(classtype,1)
+| rex field=signature (?&lt;msg&gt;msg:.+?;)
+| eval msg=split(msg,":")
+| eval msg=mvindex(msg,1)
+| stats values(msg) as msg count(msg) as msg_count by classtype
+| sort msg_count</query>
+          <earliest>-30m@m</earliest>
+          <latest>now</latest>
+          <sampleRatio>1</sampleRatio>
+        </search>
+        <option name="count">4</option>
+        <option name="dataOverlayMode">none</option>
+        <option name="drilldown">none</option>
+        <option name="percentagesRow">false</option>
+        <option name="rowNumbers">false</option>
+        <option name="totalsRow">false</option>
+        <option name="wrap">true</option>
+        <format type="color" field="classtype">
+          <colorPalette type="sharedList"></colorPalette>
+          <scale type="sharedCategory"></scale>
+        </format>
+        <format type="color" field="msg_count">
+          <colorPalette type="minMidMax" maxColor="#118832" minColor="#FFFFFF"></colorPalette>
+          <scale type="minMidMax"></scale>
+        </format>
+      </table>
+    </panel>
+    <panel>
+      <title>ICMP Count signature deployment by deployment tag</title>
+      <table>
+        <title>Count signatures by the deployment tag</title>
+        <search>
+          <query>| inputlookup icmp.csv
+| rex field=signature "(?&lt;deployment&gt; deployment \w+)"
+| rex field=signature "(?&lt;content&gt; content:.* classtype)"
+| rex field=signature (?&lt;msg&gt;msg:.+?;)
+| eval msg=split(msg,":")
+| eval msg=mvindex(msg,1)
+| eval deployment=split(deployment," ")
+| eval deployment=mvindex(deployment,2)
+| stats values(msg) as msg count(signature) as sigCount by deployment 
+| sort sigCount</query>
+          <earliest>-30m@m</earliest>
+          <latest>now</latest>
+          <sampleRatio>1</sampleRatio>
+        </search>
+        <option name="count">1</option>
+        <option name="dataOverlayMode">none</option>
+        <option name="drilldown">none</option>
+        <option name="percentagesRow">false</option>
+        <option name="rowNumbers">false</option>
+        <option name="totalsRow">false</option>
+        <option name="wrap">true</option>
+        <format type="color" field="sigCount">
+          <colorPalette type="minMidMax" maxColor="#118832" minColor="#FFFFFF"></colorPalette>
+          <scale type="minMidMax"></scale>
+        </format>
+        <format type="color" field="deployment">
+          <colorPalette type="sharedList"></colorPalette>
+          <scale type="sharedCategory"></scale>
+        </format>
+      </table>
+    </panel>
+    <panel>
+      <title>ICMP by Classtype</title>
+      <chart>
+        <search>
+          <query>| inputlookup icmp.csv
+| rex field=signature (?&lt;classtype&gt;classtype:.+?;)
+| eval classtype=split(classtype,":")
+| eval classtype=mvindex(classtype,1)
+| stats count by classtype
+| sort count</query>
+          <earliest>-30m@m</earliest>
+          <latest>now</latest>
+          <sampleRatio>1</sampleRatio>
+        </search>
+        <option name="charting.axisLabelsX.majorLabelStyle.overflowMode">ellipsisNone</option>
+        <option name="charting.axisLabelsX.majorLabelStyle.rotation">0</option>
+        <option name="charting.axisTitleX.visibility">visible</option>
+        <option name="charting.axisTitleY.visibility">visible</option>
+        <option name="charting.axisTitleY2.visibility">visible</option>
+        <option name="charting.axisX.abbreviation">none</option>
+        <option name="charting.axisX.scale">linear</option>
+        <option name="charting.axisY.abbreviation">none</option>
+        <option name="charting.axisY.scale">linear</option>
+        <option name="charting.axisY2.abbreviation">none</option>
+        <option name="charting.axisY2.enabled">0</option>
+        <option name="charting.axisY2.scale">inherit</option>
+        <option name="charting.chart">bar</option>
+        <option name="charting.chart.bubbleMaximumSize">50</option>
+        <option name="charting.chart.bubbleMinimumSize">10</option>
+        <option name="charting.chart.bubbleSizeBy">area</option>
+        <option name="charting.chart.nullValueMode">gaps</option>
+        <option name="charting.chart.showDataLabels">none</option>
+        <option name="charting.chart.sliceCollapsingThreshold">0.01</option>
+        <option name="charting.chart.stackMode">default</option>
+        <option name="charting.chart.style">shiny</option>
+        <option name="charting.drilldown">none</option>
+        <option name="charting.layout.splitSeries">0</option>
+        <option name="charting.layout.splitSeries.allowIndependentYRanges">0</option>
+        <option name="charting.legend.labelStyle.overflowMode">ellipsisMiddle</option>
+        <option name="charting.legend.mode">standard</option>
+        <option name="charting.legend.placement">right</option>
+        <option name="charting.lineWidth">2</option>
+        <option name="height">315</option>
+        <option name="trellis.enabled">0</option>
+        <option name="trellis.scales.shared">1</option>
+        <option name="trellis.size">medium</option>
+      </chart>
+    </panel>
+  </row>
+  <row>
+    <panel>
+      <title>ICMP by content</title>
+      <table>
+        <search>
+          <query>| inputlookup icmp.csv
+| rex field=signature "(?&lt;content&gt;content.*?;)"
+| rex field=signature (?&lt;msg&gt;msg:.+?;)
+| eval msg=split(msg,":")
+| eval msg=mvindex(msg,1)
+| stats  values(content) as content  by msg</query>
+          <earliest>-30m@m</earliest>
+          <latest>now</latest>
+          <sampleRatio>1</sampleRatio>
+        </search>
+        <option name="count">7</option>
+        <option name="dataOverlayMode">none</option>
+        <option name="drilldown">none</option>
+        <option name="percentagesRow">false</option>
+        <option name="rowNumbers">false</option>
+        <option name="totalsRow">false</option>
+        <option name="wrap">true</option>
+        <format type="color" field="msg">
+          <colorPalette type="sharedList"></colorPalette>
+          <scale type="sharedCategory"></scale>
+        </format>
+      </table>
+    </panel>
+  </row>
+  <row>
+    <panel id="Panel10">
+      <title>SMB - 40 Rules</title>
+      <html>
+        <style>
+          #Panel10 .dashboard-panel .panel-title {
+            color:     #FF0000;
+            font-size: 30px;
+          }   
+        </style>
+      </html>
+    </panel>
+  </row>
+  <row>
+    <panel>
+      <title>SMB rules by classtype</title>
+      <table>
+        <title>Count of rules per classtype</title>
+        <search>
+          <query>| inputlookup smb.csv
+| rex field=signature (?&lt;classtype&gt;classtype:.+?;)
+| eval classtype=split(classtype,":")
+| eval classtype=mvindex(classtype,1)
+| rex field=signature (?&lt;msg&gt;msg:.+?;)
+| eval msg=split(msg,":")
+| eval msg=mvindex(msg,1)
+| stats values(msg) as msg count(msg) as msg_count by classtype
+| sort msg_count</query>
+          <earliest>-30m@m</earliest>
+          <latest>now</latest>
+          <sampleRatio>1</sampleRatio>
+        </search>
+        <option name="count">6</option>
+        <option name="dataOverlayMode">none</option>
+        <option name="drilldown">none</option>
+        <option name="percentagesRow">false</option>
+        <option name="rowNumbers">false</option>
+        <option name="totalsRow">false</option>
+        <option name="wrap">true</option>
+        <format type="color" field="classtype">
+          <colorPalette type="sharedList"></colorPalette>
+          <scale type="sharedCategory"></scale>
+        </format>
+        <format type="color" field="msg_count">
+          <colorPalette type="minMidMax" maxColor="#118832" minColor="#FFFFFF"></colorPalette>
+          <scale type="minMidMax"></scale>
+        </format>
+      </table>
+    </panel>
+    <panel>
+      <title>SMB Count signature deployment by deployment tag</title>
+      <table>
+        <title>Count signatures by the deployment tag</title>
+        <search>
+          <query>| inputlookup smb.csv
+| rex field=signature "(?&lt;deployment&gt; deployment \w+)"
+| rex field=signature "(?&lt;content&gt; content:.* classtype)"
+| rex field=signature (?&lt;msg&gt;msg:.+?;)
+| eval msg=split(msg,":")
+| eval msg=mvindex(msg,1)
+| eval deployment=split(deployment," ")
+| eval deployment=mvindex(deployment,2)
+| stats values(msg) as msg count(signature) as sigCount by deployment 
+| sort sigCount</query>
+          <earliest>-30m@m</earliest>
+          <latest>now</latest>
+          <sampleRatio>1</sampleRatio>
+        </search>
+        <option name="count">1</option>
+        <option name="dataOverlayMode">none</option>
+        <option name="drilldown">none</option>
+        <option name="percentagesRow">false</option>
+        <option name="rowNumbers">false</option>
+        <option name="totalsRow">false</option>
+        <option name="wrap">true</option>
+        <format type="color" field="sigCount">
+          <colorPalette type="minMidMax" maxColor="#118832" minColor="#FFFFFF"></colorPalette>
+          <scale type="minMidMax"></scale>
+        </format>
+        <format type="color" field="deployment">
+          <colorPalette type="sharedList"></colorPalette>
+          <scale type="sharedCategory"></scale>
+        </format>
+      </table>
+    </panel>
+    <panel>
+      <title>SMB by Attack Target</title>
+      <chart>
+        <search>
+          <query>| inputlookup smb.csv
+| rex field=signature "(?&lt;attack_target&gt;attack_target \w+)"
+| eval attack_target=split(attack_target," ")
+| eval attack_target=mvindex(attack_target,1)
+| stats count by attack_target |sort count</query>
+          <earliest>-30m@m</earliest>
+          <latest>now</latest>
+          <sampleRatio>1</sampleRatio>
+        </search>
+        <option name="charting.chart">pie</option>
+        <option name="height">399.972</option>
+        <option name="refresh.display">progressbar</option>
+      </chart>
+    </panel>
+  </row>
+  <row>
+    <panel>
+      <title>http header analysis, primarily home_net &gt; external_net</title>
+      <table>
+        <search>
+          <query>| inputlookup http.csv
+| rex field=signature (?&lt;variable&gt;.*\(msg:)
+| stats count by variable 
+| sort -count
+```| rex field=signature (?&lt;classtype&gt;classtype:.+?;)
+| eval classtype=split(classtype,":")
+| eval classtype=mvindex(classtype,1)
+| rex field=signature (?&lt;msg&gt;msg:.+?;)
+| eval msg=split(msg,":")
+| eval msg=mvindex(msg,1)
+| stats dc(msg) as msg_disctinctcount by classtype
+| sort -msg_disctinctcount```</query>
+          <earliest>-15m</earliest>
+          <latest>now</latest>
+          <sampleRatio>1</sampleRatio>
+        </search>
+        <option name="count">100</option>
+        <option name="dataOverlayMode">none</option>
+        <option name="drilldown">none</option>
+        <option name="percentagesRow">false</option>
+        <option name="rowNumbers">false</option>
+        <option name="totalsRow">false</option>
+        <option name="wrap">true</option>
+        <format type="color" field="count">
+          <colorPalette type="minMidMax" maxColor="#118832" minColor="#FFFFFF"></colorPalette>
+          <scale type="minMidMax"></scale>
+        </format>
+      </table>
+    </panel>
+  </row>
+</form>
